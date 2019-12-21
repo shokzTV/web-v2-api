@@ -4,7 +4,6 @@ variables:
 
 stages:
   - test
-  - build
   - deploy
   - notification
 
@@ -32,21 +31,6 @@ include:
   stage: test
   template: SAST.gitlab-ci.yml
 
-build:
-  stage: build
-  image: node:13.1.0
-  before_script:
-    - yarn config set cache-folder .yarn
-    - yarn install
-  cache:
-    paths:
-      - node_modules/
-      - .yarn
-  only:
-    - master
-  script:
-    - yarn run build
-
 deploy:
   stage: deploy
   image: node:13.1.0
@@ -58,6 +42,7 @@ deploy:
     - mkdir -p ~/.ssh
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - chmod 0666 $PROD_KEY
   cache:
     paths:
       - node_modules/
