@@ -68,7 +68,7 @@ deploy:
   only:
     - master
   script:
-    - ssh-add < $PROD_KEY
+    - ssh-add $PROD_KEY
     - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:v2/api/
 
 success_notification:
