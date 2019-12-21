@@ -68,4 +68,4 @@ deploy:
     - master
   script:
     - ssh-add <(echo "$PROD_KEY")
-    - scp -P22 -r build/* $PROD_USER@$PROD_HOST:v2/api/
+    - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:v2/api/
