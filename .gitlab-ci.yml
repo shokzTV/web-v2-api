@@ -45,3 +45,27 @@ build:
     - master
   script:
     - yarn run build
+
+deploy:
+  stage: deploy
+  image: node:13.1.0
+  before_script:
+    - yarn config set cache-folder .yarn
+    - yarn install
+    - yarn run build
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - mkdir -p ~/.ssh
+    - eval $(ssh-agent -s)
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  cache:
+    paths:
+      - node_modules/
+      - .yarn
+  artifacts:
+    paths:
+      - lib/
+  only:
+    - master
+  script:
+    - ssh-add <(echo "$PROD_KEY")
+    - scp -P22 -r build/* $PROD_USER@$PROD_HOST:v2/api/
