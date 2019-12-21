@@ -42,7 +42,7 @@ deploy:
     - mkdir -p ~/.ssh
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - chmod 600 $PROD_KEY
+    - ssh-add < $PROD_KEY
   cache:
     paths:
       - node_modules/
@@ -53,7 +53,6 @@ deploy:
   only:
     - master
   script:
-    - ssh-add $PROD_KEY
     - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:v2/api/
 
 success_notification:
