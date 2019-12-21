@@ -3,12 +3,12 @@ variables:
   GIT_DEPTH: "0"
 
 stages:
-  - qa
+  - test
   - build
   - deploy
 
 sonarcloud-check:
-  stage: qa
+  stage: test
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
@@ -24,11 +24,11 @@ sonarcloud-check:
     - develop
 
 include:
-  stage: qa
+  stage: test
   template: Dependency-Scanning.gitlab-ci.yml
 
 include:
-  stage: qa
+  stage: test
   template: SAST.gitlab-ci.yml
 
 build:
