@@ -27,10 +27,6 @@ include:
   stage: test
   template: Dependency-Scanning.gitlab-ci.yml
 
-include:
-  stage: test
-  template: SAST.gitlab-ci.yml
-
 deploy:
   stage: deploy
   image: node:13.1.0
@@ -42,7 +38,7 @@ deploy:
     - mkdir -p ~/.ssh
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh-add < $PROD_KEY
+    - ssh-add <(echo "$PROD_KEY")
   cache:
     paths:
       - node_modules/
