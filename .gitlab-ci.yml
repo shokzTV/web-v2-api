@@ -1,7 +1,14 @@
 variables:
   SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
   GIT_DEPTH: "0"
+
+stages:
+  - qa
+  - build
+  - deploy
+
 sonarcloud-check:
+  stage: qa
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
@@ -17,7 +24,24 @@ sonarcloud-check:
     - develop
 
 include:
+  stage: qa
   template: Dependency-Scanning.gitlab-ci.yml
 
 include:
+  stage: qa
   template: SAST.gitlab-ci.yml
+
+build:
+  stage: build
+  image: node:13.1.0
+  before_script:
+    - yarn config set cache-folder .yarn
+    - yarn install
+  cache:
+    paths:
+      - node_modules/
+      - .yarn
+  only:
+    - master
+  script:
+    - npm run build
