@@ -44,4 +44,4 @@ build:
   only:
     - master
   script:
-    - npm run build
+    - yarn run build
