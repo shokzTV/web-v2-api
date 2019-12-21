@@ -42,7 +42,7 @@ deploy:
     - mkdir -p ~/.ssh
     - eval $(ssh-agent -s)
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - chmod 0666 $PROD_KEY
+    - chmod 600 $PROD_KEY
   cache:
     paths:
       - node_modules/
