@@ -14,7 +14,8 @@ if(SENTRY_REPORTING) {
     app.use(Sentry.Handlers.requestHandler());
 }
 
-//Route definitions
+app.route('/')
+   .get((req, res) => res.send('Welcome to shokz.tv-v2 API'));
 
 if(SENTRY_REPORTING) {
     app.use(Sentry.Handlers.errorHandler());
