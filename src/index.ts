@@ -8,7 +8,7 @@ if(SENTRY_REPORTING) {
     Sentry.init({ dsn: SENTRY_DSN});
 }
 
-const app = express();
+export const app = express();
 
 app.route('/').get((req, res) => res.send('Welcome to shokz.tv-v2 API').end());
 
