@@ -51,11 +51,13 @@ deploy:
   only:
     - master
   script:
+    - echo "Uploading build artifacts"
     - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:v2/api/
 
 success_notification:
   stage: notification
   script:
+    - echo "Success notification"
     - wget https://raw.githubusercontent.com/DiscordHooks/gitlab-ci-discord-webhook/master/send.sh
     - chmod +x send.sh
     - ./send.sh success $WEBHOOK_URL
@@ -63,7 +65,26 @@ success_notification:
 failure_notification:
   stage: notification
   script:
+    - echo "Failure notification"
     - wget https://raw.githubusercontent.com/DiscordHooks/gitlab-ci-discord-webhook/master/send.sh
     - chmod +x send.sh
     - ./send.sh failure $WEBHOOK_URL
   when: on_failure
+
+sentry_test:
+  image: getsentry/sentry-cli:1.35.3
+  stage: notification
+  needs:
+    - job: deploy
+      artifacts: true
+  script:
+    - echo "Uploading JavaScript files to Sentry..."
+    - export SENTRY_AUTH_TOKEN=$SENTRY_BASE_TOKEN
+    - export SENTRY_ORG=$SENTRY_BASE_ORGANIZATION
+    - export SENTRY_PROJECT=$SENTRY_BASE_PROJECT
+    - sentry-cli releases new -p $SENTRY_BASE_PROJECT "$CI_COMMIT_SHA"
+    - sentry-cli releases set-commits "$CI_COMMIT_SHA" --commit "$SENTRY_BASE_PROJECT@$CI_COMMIT_SHA"
+    - sentry-cli releases finalize "$CI_COMMIT_SHA"
+    - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
+  only:
+    - master
