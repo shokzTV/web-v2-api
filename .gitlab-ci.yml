@@ -5,6 +5,7 @@ variables:
 stages:
   - test
   - deploy
+  - sentry
   - notification
 
 sonarcloud-check:
@@ -54,6 +55,27 @@ deploy:
     - echo "Uploading build artifacts"
     - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:v2/api/
 
+sentry:
+  image: 
+    name: getsentry/sentry-cli:1.49.0
+    entrypoint: [""]
+  stage: sentry
+  needs:
+    - job: deploy
+      artifacts: true
+  script:
+    - echo "Uploading JavaScript files to Sentry..."
+    - export SENTRY_AUTH_TOKEN=$SENTRY_BASE_TOKEN
+    - export SENTRY_ORG=$SENTRY_BASE_ORGANIZATION
+    - export SENTRY_PROJECT=$SENTRY_BASE_PROJECT
+    - sentry-cli releases new -p $SENTRY_BASE_PROJECT "$CI_COMMIT_SHA"
+    - sentry-cli releases files "$CI_COMMIT_SHA" upload-sourcemaps --no-rewrite ./lib/
+    - sentry-cli releases set-commits --auto "$CI_COMMIT_SHA"
+    - sentry-cli releases finalize "$CI_COMMIT_SHA"
+    - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
+  only:
+    - master
+
 success_notification:
   stage: notification
   script:
@@ -70,23 +92,3 @@ failure_notification:
     - chmod +x send.sh
     - ./send.sh failure $WEBHOOK_URL
   when: on_failure
-
-sentry_test:
-  image: 
-    name: getsentry/sentry-cli:1.49.0
-    entrypoint: [""]
-  stage: notification
-  needs:
-    - job: deploy
-      artifacts: true
-  script:
-    - echo "Uploading JavaScript files to Sentry..."
-    - export SENTRY_AUTH_TOKEN=$SENTRY_BASE_TOKEN
-    - export SENTRY_ORG=$SENTRY_BASE_ORGANIZATION
-    - export SENTRY_PROJECT=$SENTRY_BASE_PROJECT
-    - sentry-cli releases new -p $SENTRY_BASE_PROJECT "$CI_COMMIT_SHA"
-    - sentry-cli releases set-commits --auto "$CI_COMMIT_SHA"
-    - sentry-cli releases finalize "$CI_COMMIT_SHA"
-    - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
-  only:
-    - master
