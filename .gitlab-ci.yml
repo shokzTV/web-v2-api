@@ -64,7 +64,10 @@ deploy:
     - master
   script:
     - echo "Uploading build artifacts"
-    - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:api/
+    - scp -P22 -r package.json $PROD_USER@$PROD_HOST:api
+    - scp -P22 -r yarn.lock $PROD_USER@$PROD_HOST:api
+    - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:api/lib
+    - ssh -p22 $PROD_USER@$PROD_HOST "yarn install"
     - ssh -p22 $PROD_USER@$PROD_HOST "pm2 restart $CI_PROJECT_TITLE"
 
 sentry:
