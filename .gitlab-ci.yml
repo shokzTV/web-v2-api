@@ -3,15 +3,16 @@ variables:
   GIT_DEPTH: "0"
 
 stages:
-  - test & build
-  - deploy staging
-  - integration tests
-  - deploy production
+  - test
+  - build
+  - deploy_staging
+  - integration_tests
+  - deploy_production
   - sentry
   - notification
 
 sonarcloud-check:
-  stage: test & build
+  stage: test
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
@@ -27,11 +28,11 @@ sonarcloud-check:
     - develop
 
 include:
-  stage: test & build
+  stage: test
   template: Dependency-Scanning.gitlab-ci.yml
 
 build:
-  stage: test & build
+  stage: build
   image: node:13.1.0
   before_script:
     - yarn config set cache-folder .yarn
@@ -48,9 +49,9 @@ build:
     - yarn run build
 
 deploy_staging:
-  stage: deploy staging
+  stage: deploy_staging
   needs:
-    - job: test & build
+    - job: build
       artifacts: true
   image: node:13.1.0
   before_script:
@@ -72,18 +73,18 @@ deploy_staging:
     - ssh -p22 $STAGING_USER@$STAGING_HOST "pm2 start api/lib/index.js --name=$CI_PROJECT_TITLE"
 
 postman:
-  stage: integration tests
+  stage: integration_tests
   needs:
-    - job: deploy staging
+    - job: deploy_staging
       artifacts: false
   image: wojciechzurek/newman-ci
   script:
     - newman run $POSTMAN_COLLECTION -e $POSTMAN_ENV
 
-shotdown_staging:
-  stage: deploy production
+shutdown_staging:
+  stage: deploy_production
   needs:
-    - job: integration tests
+    - job: postman
       artifacts: false
   image: node:13.1.0
   before_script:
@@ -99,14 +100,13 @@ shotdown_staging:
   script:
     - echo "Shutdown service"
     - ssh -p22 $PROD_USER@$PROD_HOST "pm2 stop $CI_PROJECT_TITLE"
-  when: on_success
 
 deploy_prod:
-  stage: deploy production
+  stage: deploy_production
   needs:
-    - job: test & build
+    - job: build
       artifacts: true
-    - job: integration tests
+    - job: postman
       artifacts: false
   image: node:13.1.0
   before_script:
@@ -126,7 +126,6 @@ deploy_prod:
     - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:api/lib
     - ssh -p22 $PROD_USER@$PROD_HOST "cd api && yarn install"
     - ssh -p22 $PROD_USER@$PROD_HOST "pm2 restart $CI_PROJECT_TITLE"
-  when: on_success
 
 sentry:
   image: 
@@ -134,8 +133,10 @@ sentry:
     entrypoint: [""]
   stage: sentry
   needs:
-    - job: test & build
+    - job: build
       artifacts: true
+    - job: deploy_prod
+      artifacts: false
   script:
     - echo "Uploading JavaScript files to Sentry..."
     - export SENTRY_AUTH_TOKEN=$SENTRY_BASE_TOKEN
@@ -148,7 +149,6 @@ sentry:
     - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
   only:
     - master
-  when: on_success
 
 success_notification:
   stage: notification
