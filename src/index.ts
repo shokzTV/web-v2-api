@@ -1,7 +1,7 @@
-import express from 'express';
 import dotenv from 'dotenv';
-import Sentry from '@sentry/node';
 dotenv.config();
+import express from 'express';
+import Sentry from '@sentry/node';
 const {PORT = 3000, SENTRY_REPORTING = false, SENTRY_DSN = ''} = process.env;
 
 if(SENTRY_REPORTING) {
