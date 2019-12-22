@@ -4,6 +4,7 @@ variables:
 
 stages:
   - test
+  - build
   - deploy
   - sentry
   - notification
@@ -28,20 +29,12 @@ include:
   stage: test
   template: Dependency-Scanning.gitlab-ci.yml
 
-deploy:
-  stage: deploy
+build:
+  stage: build
   image: node:13.1.0
   before_script:
     - yarn config set cache-folder .yarn
     - yarn install
-    - yarn run build
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan $PROD_HOST >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
   cache:
     paths:
       - node_modules/
@@ -49,11 +42,26 @@ deploy:
   artifacts:
     paths:
       - lib/
+  script:
+    - echo "Building"
+    - yarn run build
+
+deploy:
+  stage: deploy
+  image: node:13.1.0
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $PROD_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   only:
     - master
   script:
     - echo "Uploading build artifacts"
-    - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:v2/api/
+    - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:api/
 
 sentry:
   image: 
