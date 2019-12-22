@@ -48,6 +48,9 @@ build:
 
 deploy:
   stage: deploy
+  needs:
+    - job: build
+      artifacts: true
   image: node:13.1.0
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
@@ -70,7 +73,7 @@ sentry:
     entrypoint: [""]
   stage: sentry
   needs:
-    - job: deploy
+    - job: build
       artifacts: true
   script:
     - echo "Uploading JavaScript files to Sentry..."
