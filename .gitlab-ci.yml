@@ -4,6 +4,7 @@ variables:
 
 stages:
   - test
+  - analyses
   - build
   - deploy_staging
   - integration_tests
@@ -11,8 +12,32 @@ stages:
   - sentry
   - notification
 
-sonarcloud-check:
+include:
   stage: test
+  template: Dependency-Scanning.gitlab-ci.yml
+
+jest:
+  stage: test
+  image: node:13.1.0
+  before_script:
+    - yarn config set cache-folder .yarn
+    - yarn install
+  cache:
+    paths:
+      - node_modules/
+      - .yarn
+  artifacts:
+    paths:
+      - coverage/
+  script:
+    - echo "Testing"
+    - yarn test
+
+sonarcloud-check:
+  stage: analyses
+  needs:
+    - job: jest
+      artifacts: true
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
@@ -26,10 +51,6 @@ sonarcloud-check:
     - merge_requests
     - master
     - develop
-
-include:
-  stage: test
-  template: Dependency-Scanning.gitlab-ci.yml
 
 build:
   stage: build
