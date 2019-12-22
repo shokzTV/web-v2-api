@@ -10,8 +10,7 @@ if(SENTRY_REPORTING) {
 
 const app = express();
 
-app.route('/')
-   .get((req, res) => res.send('Welcome to shokz.tv-v2 API'));
+app.route('/').get((req, res) => res.send('Welcome to shokz.tv-v2 API').end());
 
 app.listen(PORT);
 console.log('REST Server started on: ' + PORT + ', with' + (!SENTRY_REPORTING ? 'out' : '') + ' error reporting.');
