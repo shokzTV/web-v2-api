@@ -99,7 +99,7 @@ shutdown_staging:
     - master
   script:
     - echo "Shutdown service"
-    - ssh -p22 $PROD_USER@$PROD_HOST "pm2 stop $CI_PROJECT_TITLE"
+    - ssh -p22 $STAGING_USER@$STAGING_HOST "pm2 stop $CI_PROJECT_TITLE"
 
 deploy_prod:
   stage: deploy_production
