@@ -3,14 +3,15 @@ variables:
   GIT_DEPTH: "0"
 
 stages:
-  - test
-  - build
-  - deploy
+  - test & build
+  - deploy staging
+  - integration tests
+  - deploy production
   - sentry
   - notification
 
 sonarcloud-check:
-  stage: test
+  stage: test & build
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
@@ -26,11 +27,11 @@ sonarcloud-check:
     - develop
 
 include:
-  stage: test
+  stage: test & build
   template: Dependency-Scanning.gitlab-ci.yml
 
 build:
-  stage: build
+  stage: test & build
   image: node:13.1.0
   before_script:
     - yarn config set cache-folder .yarn
@@ -46,11 +47,67 @@ build:
     - echo "Building"
     - yarn run build
 
-deploy:
-  stage: deploy
+deploy_staging:
+  stage: deploy staging
   needs:
-    - job: build
+    - job: test & build
       artifacts: true
+  image: node:13.1.0
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$STAGING_SSH_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $STAGING_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  only:
+    - master
+  script:
+    - echo "Uploading build artifacts"
+    - scp -P22 -r package.json $STAGING_USER@$STAGING_HOST:api
+    - scp -P22 -r yarn.lock $STAGING_USER@$STAGING_HOST:api
+    - scp -P22 -r lib/* $STAGING_USER@$STAGING_HOST:api/lib
+    - ssh -p22 $STAGING_USER@$STAGING_HOST "cd api && yarn install"
+    - ssh -p22 $STAGING_USER@$STAGING_HOST "pm2 start api/lib/index.js --name=$CI_PROJECT_TITLE"
+
+postman:
+  stage: integration tests
+  needs:
+    - job: deploy staging
+      artifacts: false
+  image: wojciechzurek/newman-ci
+  script:
+    - newman run $POSTMAN_COLLECTION -e $POSTMAN_ENV
+
+shotdown_staging:
+  stage: deploy production
+  needs:
+    - job: integration tests
+      artifacts: false
+  image: node:13.1.0
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $STAGING_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  only:
+    - master
+  script:
+    - echo "Shutdown service"
+    - ssh -p22 $PROD_USER@$PROD_HOST "pm2 stop $CI_PROJECT_TITLE"
+  when: on_success
+
+deploy_prod:
+  stage: deploy production
+  needs:
+    - job: test & build
+      artifacts: true
+    - job: integration tests
+      artifacts: false
   image: node:13.1.0
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
@@ -69,6 +126,7 @@ deploy:
     - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:api/lib
     - ssh -p22 $PROD_USER@$PROD_HOST "cd api && yarn install"
     - ssh -p22 $PROD_USER@$PROD_HOST "pm2 restart $CI_PROJECT_TITLE"
+  when: on_success
 
 sentry:
   image: 
@@ -76,7 +134,7 @@ sentry:
     entrypoint: [""]
   stage: sentry
   needs:
-    - job: build
+    - job: test & build
       artifacts: true
   script:
     - echo "Uploading JavaScript files to Sentry..."
@@ -90,6 +148,7 @@ sentry:
     - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
   only:
     - master
+  when: on_success
 
 success_notification:
   stage: notification
