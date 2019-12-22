@@ -62,6 +62,7 @@ deploy:
   script:
     - echo "Uploading build artifacts"
     - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:api/
+    - ssh -p22 $PROD_USER@$PROD_HOST "pm2 restart $CI_PROJECT_TITLE"
 
 sentry:
   image: 
