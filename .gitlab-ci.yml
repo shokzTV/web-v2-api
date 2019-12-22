@@ -85,7 +85,7 @@ sentry_test:
     - export SENTRY_ORG=$SENTRY_BASE_ORGANIZATION
     - export SENTRY_PROJECT=$SENTRY_BASE_PROJECT
     - sentry-cli releases new -p $SENTRY_BASE_PROJECT "$CI_COMMIT_SHA"
-    - sentry-cli releases set-commits "$CI_COMMIT_SHA" --commit "$SENTRY_BASE_PROJECT@$CI_COMMIT_SHA"
+    - sentry-cli releases set-commits --auto "$CI_COMMIT_SHA"
     - sentry-cli releases finalize "$CI_COMMIT_SHA"
     - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
   only:
