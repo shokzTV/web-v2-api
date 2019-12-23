@@ -100,7 +100,7 @@ postman:
       artifacts: false
   image: wojciechzurek/newman-ci
   script:
-    - newman run $POSTMAN_COLLECTION -e $POSTMAN_ENV
+    - newman run -n 3 $POSTMAN_COLLECTION -e $POSTMAN_ENV
 
 shutdown_staging:
   stage: deploy_production
