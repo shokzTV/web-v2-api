@@ -16,28 +16,28 @@ include:
   stage: test
   template: Dependency-Scanning.gitlab-ci.yml
 
-jest:
-  stage: test
-  image: node:13.1.0
-  before_script:
-    - yarn config set cache-folder .yarn
-    - yarn install
-  cache:
-    paths:
-      - node_modules/
-      - .yarn
-  artifacts:
-    paths:
-      - coverage/
-  script:
-    - echo "Testing"
-    - yarn test
+#jest:
+#  stage: test
+#  image: node:13.1.0
+#  before_script:
+#    - yarn config set cache-folder .yarn
+#    - yarn install
+#  cache:
+#    paths:
+#      - node_modules/
+#      - .yarn
+#  artifacts:
+#    paths:
+#      - coverage/
+#  script:
+#    - echo "Testing"
+#    - yarn test
 
 sonarcloud-check:
   stage: analyses
-  needs:
-    - job: jest
-      artifacts: true
+  #needs:
+  # - job: jest
+  #   artifacts: true
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
@@ -100,7 +100,7 @@ postman:
       artifacts: false
   image: wojciechzurek/newman-ci
   script:
-    - newman run -n 3 $POSTMAN_COLLECTION -e $POSTMAN_ENV
+    - newman run $POSTMAN_COLLECTION -e $POSTMAN_ENV
 
 shutdown_staging:
   stage: deploy_production

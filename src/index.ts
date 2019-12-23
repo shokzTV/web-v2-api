@@ -1,28 +1,18 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import config from './config';
 import express from 'express';
 import Sentry from '@sentry/node';
-const {PORT = 3000, SENTRY_REPORTING = false, SENTRY_DSN = ''} = process.env;
 
 /* istanbul ignore next */
-if(SENTRY_REPORTING) {
-    Sentry.init({ dsn: SENTRY_DSN});
+if(config.sentry.active) {
+    Sentry.init({ dsn: config.sentry.dsn});
 }
 
-export const app = express();
+async function startServer() {
+    const app = express();
+    await require('./loaders').default({ app });
 
-/* istanbul ignore next */
-if(SENTRY_REPORTING) {
-    app.use(Sentry.Handlers.requestHandler());
+    app.listen(config.port);
+    console.log(`API started on: ${config.port}, with${!config.sentry.active ? 'out' : ''} error reporting.`);
 }
 
-app.route('/').get((req, res) => res.send('Welcome to shokz.tv-v2 API').end());
-
-
-/* istanbul ignore next */
-if(SENTRY_REPORTING) {
-    app.use(Sentry.Handlers.errorHandler());
-}
-
-app.listen(PORT);
-console.log('REST Server started on: ' + PORT + ', with' + (!SENTRY_REPORTING ? 'out' : '') + ' error reporting.');
+startServer();
