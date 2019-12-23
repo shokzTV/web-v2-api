@@ -4,7 +4,7 @@ import routes from '../api';
 import config from '../config';
 import Sentry from '@sentry/node';
 
-export default ({ app }: { app: express.Application }) => {
+export default async ({ app }: { app: express.Application }) => {
     /* istanbul ignore next */
     if(config.sentry.active) {
         app.use(Sentry.Handlers.requestHandler());
