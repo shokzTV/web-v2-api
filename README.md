@@ -10,7 +10,7 @@ Yarn package manager is used.
 * Rename `.env.dist` to `.env` and enter all required fields
 * Run the migrations with `yarn migration up`
 * Build with `yarn build`
-* Start with `yarn run`
+* Start with `yarn start`
 
 
 Production Info

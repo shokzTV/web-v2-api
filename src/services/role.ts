@@ -8,10 +8,17 @@ type RightsResult = Right & RowDataPacket & OkPacket & {
     roleId: number;
 };
 
-export async function getRoles(): Promise<RoleResult[]> {
+//#region <controller functions>
+
+export async function getRoles(roleIds: number[] = []): Promise<RoleResult[]> {
     const conn = await getConn();
-    const [roles] = await conn.query<RoleResult[]>(`SELECT * from role`);
-    const [roleRights] = await conn.query<RightsResult[]>(`SELECT rr.role_id, r.id, r.name, r.ident FROM right_roles rr INNER JOIN \`right\` r`);
+    const [roles] = await conn.query<RoleResult[]>(roleIds.length > 0 ? `SELECT * from role WHERE id IN (?)` : `SELECT * from role`, [roleIds]);
+    const selectedRoleIds = roles.map(({id}) => id);
+    const [roleRights] = await conn.query<RightsResult[]>(
+        `SELECT rr.role_id as role, r.id, r.name, r.ident FROM role_rights rr INNER JOIN \`right\` r ON rr.right_id = r.id AND rr.role_id IN (?)`, 
+        [selectedRoleIds]
+    );
+
     await conn.end();
 
     return roles.map((role) => ({
@@ -48,3 +55,12 @@ export async function removeRight(roleId: number, rightId: number): Promise<void
         console.error(error);
     }
 }
+
+//#endregion
+
+export async function getUserRoleRights(userId: number): Promise<RoleResult[]> {
+    const conn = await getConn();
+    const [roleIds] = await conn.query<(number & RowDataPacket & OkPacket)[]>('SELECT role_id as id FROM user_roles WHERE user_id = ?', [userId]);
+    await conn.end();
+    return await getRoles(roleIds.map(({id}) => id));
+} 
