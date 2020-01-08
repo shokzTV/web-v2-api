@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { getRights } from '../../services/rights';
+import { getRights } from '../../services/right';
 
 const route = Router();
 
