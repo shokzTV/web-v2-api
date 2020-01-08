@@ -21,6 +21,7 @@
   },
   "scripts": {
     "build": "tsc -p .",
-    "migration": "node scripts/migration.js"
+    "migration": "node scripts/migration.js",
+    "run": "node lib/index.js"
   }
 }
