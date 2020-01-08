@@ -10,6 +10,7 @@ if (!envFound) {
 
 export default {
   port: process.env.PORT || 80,
+  secret: process.env.secret || 'someawesomesecret',
   server: {
     secure: process.env.PORT === '443',
     certs: {
@@ -24,5 +25,9 @@ export default {
     user: process.env.MYSQL_USER ||  'root',
     password: process.env.MYSQL_PASSWORD || '',
     database: process.env.MYSQL_DATABASE || 'app'
+  },
+  twitch: {
+    clientId: process.env.TWITCH_CLIENT_ID || '',
+    clientSecret: process.env.TWITCH_CLIENT_SECRET || '',
   }
 }
