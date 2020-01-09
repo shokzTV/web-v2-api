@@ -11,6 +11,7 @@ if (!envFound) {
 export default {
   port: process.env.PORT || 80,
   secret: process.env.secret || 'someawesomesecret',
+  jwt_secret: process.env.JWT_SECRET || 'anotherawesomesecret',
   server: {
     secure: process.env.PORT === '443',
     certs: {

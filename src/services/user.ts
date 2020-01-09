@@ -60,3 +60,21 @@ export async function loadUserByTwitchId(twitchId: number): Promise<User | null>
 
     return user;
 }
+
+export async function loadUserById(id: number): Promise<User | null> {
+    const conn = await getConn();
+    const [userRows] = await conn.query<UserResponse[]>('SELECT * FROM user WHERE id = ?;', [id]);
+    let user = null;
+    
+    if(userRows.length === 1) {
+        const userId = userRows[0].id;
+        const rightRoles = await getUserRoleRights(userId);
+        user = {
+            ...userRows[0],
+            roles: rightRoles
+        };
+    }
+    await conn.end();
+
+    return user;
+}
