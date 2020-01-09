@@ -1,15 +1,15 @@
 import express from 'express';
-import passport from 'passport';
+import {PassportStatic} from 'passport';
 import {Strategy}  from 'passport-twitch-new';
 import config from '../config';
 import authRoutes from '../api/routes/auth';
 import { findOrCreateUser } from '../services/user';
 
-export default async ({ app }: { app: express.Application }) => {
+export default async ({ app, passport }: { app: express.Application, passport: PassportStatic }) => {
     passport.use(new Strategy({
         clientID: config.twitch.clientId,
         clientSecret: config.twitch.clientSecret,
-        callbackURL: "http://localhost/auth/twitch/callback",
+        callbackURL: "http://localhost:3000/auth",
         scope: ""
     },
     async (accessToken, refreshToken, profile, done) => {

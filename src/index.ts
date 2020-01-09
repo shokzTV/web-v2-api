@@ -2,6 +2,7 @@ import config from './config';
 import express from 'express';
 import fs from 'fs';
 import https from 'https';
+import passport from 'passport';
 import http from 'http';
 
 let key: string;
@@ -16,7 +17,7 @@ if(config.server.secure) {
 
 async function startServer() {
     const app = express();
-    await require('./loaders').default({ app });
+    await require('./loaders').default({ app, passport });
 
     const server  = config.server.secure ? https.createServer({key, cert, ca}, app) : http.createServer(app);
     server.listen(config.port, () => {
