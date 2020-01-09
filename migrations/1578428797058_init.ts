@@ -1,5 +1,7 @@
+import { Connection } from "mysql2";
+
 module.exports = {
-    "up": (conn, cb) => {
+    "up": (conn: Connection, cb: () => void) => {
         conn.query(`
             CREATE TABLE tag (id int NOT NULL AUTO_INCREMENT, name varchar(191) NOT NULL, image varchar(191) NOT NULL, PRIMARY KEY (id));
             CREATE TABLE role (id int NOT NULL AUTO_INCREMENT, name varchar(191) NOT NULL, PRIMARY KEY (id));
@@ -17,7 +19,7 @@ module.exports = {
             cb();
         })
     },
-    "down": (conn, cb) => {
+    "down": (conn: Connection, cb: () => void) => {
         conn.query(`
             DROP TABLE IF EXISTS article_tags; 
             DROP TABLE IF EXISTS media;
