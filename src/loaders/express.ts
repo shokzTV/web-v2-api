@@ -3,9 +3,12 @@ import bodyParser from 'body-parser';
 import routes from '../api';
 import cors from 'cors';
 import {PassportStatic} from 'passport';
+import fileUpload from 'express-fileupload';
+
 
 export default async ({ app, passport }: { app: express.Application; passport: PassportStatic}) => {
     app.use(cors());
+    app.use(fileUpload());
 
     app.use('/static', express.static('static'));
 
