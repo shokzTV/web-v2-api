@@ -2,6 +2,7 @@ import { Router } from 'express';
 import baseRoutes from './routes/base';
 import rightRoutes from './routes/right';
 import roleRoutes from './routes/role';
+import tagRoutes from './routes/tag';
 import { PassportStatic } from 'passport';
 
 export default ({passport}: {passport: PassportStatic}) => {
@@ -11,6 +12,7 @@ export default ({passport}: {passport: PassportStatic}) => {
 	baseRoutes(app);
 	roleRoutes(app);
 	rightRoutes(app);
+	tagRoutes(app);
 	
 	return app;
 }
