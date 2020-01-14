@@ -15,13 +15,13 @@ export default (app: Router) => {
 
     route.post('/create', checkUserRole('ARTICLE_EDIT'), async (req: Request, res: Response) => {
         const image = req.files ? req.files.image : null;
-        await createTag(req.body.name, image as UploadedFile);
-        return res.json().status(201);
+        const tag = await createTag(req.body.name, image as UploadedFile);
+        return res.json(tag).status(201);
     });
 
     route.patch('/:tagId', checkUserRole('ARTICLE_EDIT'), async (req: Request, res: Response) => {
         const image = req.files ? req.files.image : null;
-        const tags = await patchTag(+req.params.tagId,req.body.name, image as UploadedFile);
-        return res.json().status(204);
+        await patchTag(+req.params.tagId,req.body.name, image as UploadedFile);
+        return res.send().status(204);
     });
 };
