@@ -12,17 +12,17 @@ export interface Tag extends RowDataPacket {
 
 export async function requireTags(tags: string[]): Promise<TagIdMap> {
     const conn = await getConn();
-    const [knownTagRows] = await conn.execute<Tag[]>('SELECT id, name FROM tags WHERE name IN (:tags)', [tags]);
+    const [knownTagRows] = await conn.execute<Tag[]>('SELECT id, name FROM tag WHERE name IN (?)', [tags.join(', ')]);
 
     const mappedTags = knownTagRows.reduce<TagIdMap>((acc, {id, name}) => ({...acc, [name]: id}), {});
     const knownNames = Object.keys(tags);
     const unknownTags = tags.filter((tag) => !knownNames.includes(tag));
 
-    for(const unknwonTag in unknownTags) {
+    for(const unknwonTag of unknownTags) {
         const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, image) VALUES (NULL, ?, "")', [unknwonTag]);
         mappedTags[unknwonTag] = insertId;
     }
 
-    conn.end();
+    await conn.end();
     return mappedTags;
 }

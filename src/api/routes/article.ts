@@ -2,12 +2,17 @@ import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
 import { UploadedFile } from 'express-fileupload';
 import { User } from '../../entities/User';
-import { createDraft, publishArticle, unpublishArticle, assignTag, removeTag } from '../../services/article';
+import { createDraft, publishArticle, unpublishArticle, assignTag, removeTag, getArticles } from '../../services/article';
 
 const route = Router();
 
 export default (app: Router) => {
     app.use('/article', route);
+
+    route.get('/list', async (req: Request, res: Response) => {
+        const articles = await getArticles([]);
+        return res.json(articles).status(200);
+    });
 
     route.post('/create', checkUserRole('ARTICLE_CREATE'), async (req: Request, res: Response) => {
         const userId = (req.user! as User).id;
