@@ -40,7 +40,7 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
     }
 
     const [articles] = await conn.execute<Article[]>(`SELECT id, title, author, body, cover, status, FROM_UNIXTIME(created) as created FROM article ${condition}`, params);
-    const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name. t.image FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id ${condition}`, params);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id ${condition}`, params);
 
     await conn.end();
 
@@ -53,7 +53,7 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
 export async function createDraft(title: string, body: string, tags: string[], userId: number, cover: UploadedFile |  null): Promise<number> {
     const conn = await getConn();
     
-    let imagePath: string|null= null;
+    let imagePath: string= '';
     if(cover) {
         const imgHash = uuid(title, uuid.URL);
         imagePath = `/static/covers/${imgHash}.jpg`;
@@ -62,7 +62,7 @@ export async function createDraft(title: string, body: string, tags: string[], u
     }
 
     const [{insertId}] = await conn.execute<OkPacket>(
-        `INSERT INTO articles (id,title,author,created,cover,body,status) VALUES (NULL,?,?,NOW(),?,?,?)`,
+        `INSERT INTO article (id,title,author,created,cover,body,status) VALUES (NULL,?,?,NOW(),?,?,?)`,
         [title, userId, imagePath, body, Status.draft]
     );
 
@@ -89,6 +89,7 @@ async function assignTags(articleId: number, tags: string[]): Promise<void> {
     const conn = await getConn();
     
     for(const tag of tags) {
+        console.log(articleId, tagMap, tag);
         await conn.execute('INSERT INTO article_tags (article_id, tag_id) VALUES (?, ?);', [articleId, tagMap[tag]]);
     }
     await conn.end();

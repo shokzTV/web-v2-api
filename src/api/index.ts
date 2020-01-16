@@ -3,6 +3,7 @@ import baseRoutes from './routes/base';
 import rightRoutes from './routes/right';
 import roleRoutes from './routes/role';
 import tagRoutes from './routes/tag';
+import articleRoutes from './routes/article';
 import { PassportStatic } from 'passport';
 
 export default ({passport}: {passport: PassportStatic}) => {
@@ -13,6 +14,7 @@ export default ({passport}: {passport: PassportStatic}) => {
 	roleRoutes(app);
 	rightRoutes(app);
 	tagRoutes(app);
+	articleRoutes(app);
 	
 	return app;
 }
