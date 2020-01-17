@@ -24,21 +24,21 @@ export default (app: Router) => {
 
     route.patch('/:articleId/publish', checkUserRole('ARTICLE_PUBLISH'), async (req: Request, res: Response) => {
         await publishArticle(+req.params.articleId);
-        return res.json().status(204);
+        return res.send().status(204);
     });
 
     route.patch('/:articleId/unpublish', checkUserRole('ARTICLE_UNPUBLISH'), async (req: Request, res: Response) => {
         await unpublishArticle(+req.params.articleId);
-        return res.json().status(204);
+        return res.send().status(204);
     });
 
     route.put('/:articleId/tag', checkUserRole('ARTICLE_EDIT'), async (req: Request, res: Response) => {
         await assignTag(+req.params.articleId, req.body.tag);
-        return res.json().status(204);
+        return res.send().status(204);
     });
 
     route.delete('/:articleId/tag/:tagId', checkUserRole('ARTICLE_EDIT'), async (req: Request, res: Response) => {
         await removeTag(+req.params.articleId, +req.params.tagId);
-        return res.json().status(204);
+        return res.send().status(204);
     });
 };
