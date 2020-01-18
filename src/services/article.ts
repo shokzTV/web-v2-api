@@ -60,7 +60,7 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
         params.push(articleIds);
     }
 
-    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover, a.status, FROM_UNIXTIME(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author ${condition}`, params);
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author ${condition}`, params);
     const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id ${condition}`, params);
 
     await conn.end();
@@ -79,7 +79,7 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
             avatar: a.avatar,
             title: a.custom_title
         },
-        tags: tags.filter(({article}) => article === a.id).map(({id, name, image}) => ({id, name, image})),
+        tags: tags.filter(({article}) => article === a.articleId).map(({id, name, image}) => ({id, name, image})),
     }));
 }
 
@@ -109,6 +109,14 @@ export async function createDraft(title: string, body: string, tags: string[], u
     await conn.end();
 
     return insertId;
+}
+
+export async function patchArticle(articleId: number, title: string, body: string, tags: string[]): Promise<void> {
+    const conn = await getConn();
+    await conn.execute('UPDATE article SET title=?,body=? WHERE id=?', [title, body, articleId]);
+    await conn.execute('DELETE FROM article_tags WHERE article_id = ?', [articleId]);
+    await assignTags(articleId, tags);
+    await conn.end();
 }
 
 export async function publishArticle(articleId: number): Promise<void> {

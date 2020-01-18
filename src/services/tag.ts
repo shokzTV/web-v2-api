@@ -14,10 +14,10 @@ export interface Tag extends RowDataPacket {
 
 export async function requireTags(tags: string[]): Promise<TagIdMap> {
     const conn = await getConn();
-    const [knownTagRows] = await conn.execute<Tag[]>('SELECT id, name FROM tag WHERE name IN (?)', [tags.join(', ')]);
-
+    const cond = Array(tags.length).fill('?');
+    const [knownTagRows] = await conn.execute<Tag[]>(`SELECT id, name FROM tag WHERE name IN (${cond.join(',')})`, tags);
     const mappedTags = knownTagRows.reduce<TagIdMap>((acc, {id, name}) => ({...acc, [name]: id}), {});
-    const knownNames = Object.keys(tags);
+    const knownNames = Object.keys(mappedTags);
     const unknownTags = tags.filter((tag) => !knownNames.includes(tag));
 
     for(const unknwonTag of unknownTags) {
@@ -55,7 +55,7 @@ export async function getTags(): Promise<Tag[]> {
 export async function createTag(name: string, image?: UploadedFile): Promise<number> {
     const conn = await getConn();
     
-    let imagePath: string|null= null;
+    let imagePath: string|null= '';
     if(image) {
         imagePath = await saveTagCover(name, image);
     }
@@ -73,9 +73,18 @@ export async function patchTag(id: number, name?: string, image?: UploadedFile):
     }
 
     if(image) {
-        const imagePath = saveTagCover(''+id, image);
+        const imagePath = await saveTagCover(''+id, image);
         await conn.execute('UPDATE tag SET image=? WHERE id=?', [imagePath, id]);
     }
+
+    await conn.end();
+}
+
+export async function delTag(id: number): Promise<void> {
+    const conn = await getConn();
+
+    await conn.execute('DELETE FROM article_tags WHERE tag_id = ?', [id]);
+    await conn.execute('DELETE FROM tag WHERE id = ?', [id]);
 
     await conn.end();
 }
