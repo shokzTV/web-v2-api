@@ -12,10 +12,10 @@ type RightsResult = Right & RowDataPacket & OkPacket & {
 
 export async function getRoles(roleIds: number[] = []): Promise<RoleResult[]> {
     const conn = await getConn();
-    const [roles] = await conn.query<RoleResult[]>(roleIds.length > 0 ? `SELECT * from role WHERE id IN (?)` : `SELECT * from role`, [roleIds]);
+    const [roles] = await conn.query<RoleResult[]>(roleIds.length > 0 ? `SELECT * from role WHERE id IN (?);` : `SELECT * from role;`, [roleIds]);
     const selectedRoleIds = roles.map(({id}) => id);
     const [roleRights] = await conn.query<RightsResult[]>(
-        `SELECT rr.role_id as role, r.id, r.name, r.ident FROM role_rights rr INNER JOIN \`right\` r ON rr.right_id = r.id AND rr.role_id IN (?)`, 
+        `SELECT rr.role_id as role, r.id, r.name, r.ident FROM role_rights rr INNER JOIN \`right\` r ON rr.right_id = r.id AND rr.role_id IN (?);`, 
         [selectedRoleIds]
     );
 
