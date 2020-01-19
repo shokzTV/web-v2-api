@@ -70,7 +70,7 @@ deploy_staging:
     - scp -P22 -r scripts/* $STAGING_USER@$STAGING_HOST:api/scripts
     - scp -P22 -r migrations/* $STAGING_USER@$STAGING_HOST:api/migrations
     - ssh -p22 $STAGING_USER@$STAGING_HOST "cd api && yarn install"
-    - ssh -p22 $STAGING_USER@$STAGING_HOST "cd api && node scripts/migrations.js up"
+    - ssh -p22 $STAGING_USER@$STAGING_HOST "cd api && yarn migrate"
     - ssh -p22 $STAGING_USER@$STAGING_HOST "sudo pm2 restart $CI_PROJECT_TITLE"
 
 deploy_prod:
