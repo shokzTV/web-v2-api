@@ -9,7 +9,7 @@ export default async ({ app, passport }: { app: express.Application, passport: P
     passport.use(new Strategy({
         clientID: config.twitch.clientId,
         clientSecret: config.twitch.clientSecret,
-        callbackURL: "http://localhost:3000/auth",
+        callbackURL: "https://admin-shokz.grief.dev/auth",
         scope: ""
     },
     async (accessToken, refreshToken, profile, done) => {
