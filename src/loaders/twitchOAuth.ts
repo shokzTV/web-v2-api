@@ -7,9 +7,9 @@ import { findOrCreateUser } from '../services/user';
 
 export default async ({ app, passport }: { app: express.Application, passport: PassportStatic }) => {
     passport.use(new Strategy({
+        callbackURL: config.twitch.callbackURL,
         clientID: config.twitch.clientId,
         clientSecret: config.twitch.clientSecret,
-        callbackURL: "https://admin-shokz.grief.dev/auth",
         scope: ""
     },
     async (accessToken, refreshToken, profile, done) => {
