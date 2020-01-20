@@ -55,7 +55,7 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
     let condition = '';
     const params = [];
 
-    if( articleIds.length) {
+    if(articleIds.length) {
         condition = 'WHERE id IN (:ids)';
         params.push(articleIds);
     }
@@ -131,12 +131,14 @@ export async function unpublishArticle(articleId: number): Promise<void> {
     await conn.end();
 }
 
-async function assignTags(articleId: number, tags: string[]): Promise<void> {
+async function assignTags(articleId: number, tags: string[] = []): Promise<void> {
     const tagMap = await requireTags(tags);
     const conn = await getConn();
     
-    for(const tag of tags) {
-        await conn.execute('INSERT INTO article_tags (article_id, tag_id) VALUES (?, ?);', [articleId, tagMap[tag]]);
+    if(tags.length) {
+        for(const tag of tags) {
+            await conn.execute('INSERT INTO article_tags (article_id, tag_id) VALUES (?, ?);', [articleId, tagMap[tag]]);
+        }
     }
     await conn.end();
 }

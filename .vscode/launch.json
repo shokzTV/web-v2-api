@@ -12,7 +12,8 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/lib/index.js",
-            "preLaunchTask": "yarn build"
+            "preLaunchTask": "yarn build",
+            "outFiles": ["${workspaceFolder}/lib/**/*.js"]
         }
     ],
 }
