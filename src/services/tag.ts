@@ -36,14 +36,14 @@ export async function requireTags(tags: string[] = []): Promise<TagIdMap> {
 async function saveTagCover(name: string, file: UploadedFile): Promise<string> {
     let imagePath: string|null= null;
     const imgHash = uuid(name, uuid.URL);
-    imagePath = `/static/tags/${imgHash}.webp`;
-    const orgImagePath = `/static/tags/${imgHash}_orig.webp`;
+    imagePath = `/static/tags/${imgHash}.jpeg`;
+    const orgImagePath = `/static/tags/${imgHash}_orig.jpeg`;
     await sharp(file.data)
-    .webp({ lossless: true })
+            .jpeg()
             .resize({ width: 512, height: 288 })
             .toFile(__dirname + `/../..${imagePath}`);
     await sharp(file.data)
-            .webp({ lossless: true })
+            .jpeg()
             .toFile(__dirname + `/../..${orgImagePath}`);
 
     return imagePath;
