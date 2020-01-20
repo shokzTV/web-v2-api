@@ -50,22 +50,8 @@ interface TagResponse extends Tag {
     article: number;
 }
 
-export async function getArticles(articleIds: number[] = []): Promise<Article[]> {
-    const conn = await getConn();
-    let condition = '';
-    const params = [];
-
-    if(articleIds.length) {
-        condition = 'WHERE id IN (:ids)';
-        params.push(articleIds);
-    }
-
-    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author ${condition}`, params);
-    const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id ${condition}`, params);
-
-    await conn.end();
-
-    return articles.map((a) => ({
+function mapRows(rows: ArticleRow[], tags: TagResponse[]): Article[] {
+    return rows.map((a) => ({
         id: a.articleId,
         title: a.title,
         body: a.body,
@@ -81,6 +67,32 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
         },
         tags: tags.filter(({article}) => article === a.articleId).map(({id, name, image}) => ({id, name, image})),
     }));
+} 
+
+export async function getArticles(articleIds: number[] = []): Promise<Article[]> {
+    const conn = await getConn();
+    let condition = '';
+    const params = [];
+
+    if(articleIds.length) {
+        condition = 'WHERE id IN (:ids)';
+        params.push(articleIds);
+    }
+
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author ${condition}`, params);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id ${condition}`, params);
+
+    await conn.end();
+
+    return mapRows(articles, tags);
+}
+
+export async function getPublicArticles(): Promise<Article[]> {
+    const conn = await getConn();
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published'`);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id`);
+    await conn.end();
+    return mapRows(articles, tags);
 }
 
 export async function createDraft(title: string, body: string, tags: string[], userId: number, cover: UploadedFile |  null): Promise<number> {
@@ -121,13 +133,13 @@ export async function patchArticle(articleId: number, title: string, body: strin
 
 export async function publishArticle(articleId: number): Promise<void> {
     const conn = await getConn();
-    await conn.execute('UPDATE article SET status="published";', [articleId]);
+    await conn.execute('UPDATE article SET status="published" WHERE id = ?;', [articleId]);
     await conn.end();
 }
 
 export async function unpublishArticle(articleId: number): Promise<void> {
     const conn = await getConn();
-    await conn.execute('UPDATE article SET status="hidden";', [articleId]);
+    await conn.execute('UPDATE article SET status="hidden" WHERE id = ?;', [articleId]);
     await conn.end();
 }
 
