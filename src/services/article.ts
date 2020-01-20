@@ -89,14 +89,14 @@ export async function createDraft(title: string, body: string, tags: string[], u
     let imagePath: string= '';
     if(cover) {
         const imgHash = uuid(title, uuid.URL);
-        imagePath = `/static/covers/${imgHash}.webp`;
-        const orgImagePath = `/static/covers/${imgHash}_orig.webp`;
+        imagePath = `/static/covers/${imgHash}.jpeg`;
+        const orgImagePath = `/static/covers/${imgHash}_orig.jpeg`;
         await sharp(cover.data)
             .resize({ width: 512, height: 288 })
-            .webp({ lossless: true })
+            .jpeg()
             .toFile(__dirname + `/../..${imagePath}`);
         await sharp(cover.data)
-            .webp({ lossless: true })
+            .jpeg()
             .toFile(__dirname + `/../..${orgImagePath}`);
     }
 
