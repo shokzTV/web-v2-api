@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
 import { UploadedFile } from 'express-fileupload';
 import { User } from '../../entities/User';
-import { createDraft, publishArticle, unpublishArticle, assignTag, removeTag, getArticles, patchArticle } from '../../services/article';
+import { createDraft, publishArticle, unpublishArticle, assignTag, removeTag, getArticles, patchArticle, getPublicArticles } from '../../services/article';
 
 const route = Router();
 
@@ -16,7 +16,12 @@ function getTags(tags: string | string[]): string[] {
 export default (app: Router) => {
     app.use('/article', route);
 
-    route.get('/list', async (req: Request, res: Response) => {
+    route.get('/public', async (req: Request, res: Response) => {
+        const articles = await getPublicArticles();
+        return res.json(articles).status(200);
+    });
+
+    route.get('/list', checkUserRole('ADMIN_ACCESS'), async (req: Request, res: Response) => {
         const articles = await getArticles([]);
         return res.json(articles).status(200);
     });
