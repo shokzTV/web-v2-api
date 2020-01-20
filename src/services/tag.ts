@@ -12,21 +12,25 @@ export interface Tag extends RowDataPacket {
     image?: string;
 }
 
-export async function requireTags(tags: string[]): Promise<TagIdMap> {
-    const conn = await getConn();
-    const cond = Array(tags.length).fill('?');
-    const [knownTagRows] = await conn.execute<Tag[]>(`SELECT id, name FROM tag WHERE name IN (${cond.join(',')})`, tags);
-    const mappedTags = knownTagRows.reduce<TagIdMap>((acc, {id, name}) => ({...acc, [name]: id}), {});
-    const knownNames = Object.keys(mappedTags);
-    const unknownTags = tags.filter((tag) => !knownNames.includes(tag));
-
-    for(const unknwonTag of unknownTags) {
-        const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, image) VALUES (NULL, ?, "")', [unknwonTag]);
-        mappedTags[unknwonTag] = insertId;
+export async function requireTags(tags: string[] = []): Promise<TagIdMap> {
+    if(tags.length) {
+        const conn = await getConn();
+        const cond = Array(tags.length).fill('?');
+        const [knownTagRows] = await conn.execute<Tag[]>(`SELECT id, name FROM tag WHERE name IN (${cond.join(',')})`, tags);
+        const mappedTags = knownTagRows.reduce<TagIdMap>((acc, {id, name}) => ({...acc, [name]: id}), {});
+        const knownNames = Object.keys(mappedTags);
+        const unknownTags = tags.filter((tag) => !knownNames.includes(tag));
+    
+        for(const unknwonTag of unknownTags) {
+            const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, image) VALUES (NULL, ?, "")', [unknwonTag]);
+            mappedTags[unknwonTag] = insertId;
+        }
+    
+        await conn.end();
+        return mappedTags;
     }
-
-    await conn.end();
-    return mappedTags;
+    
+    return {};
 }
 
 async function saveTagCover(name: string, file: UploadedFile): Promise<string> {
