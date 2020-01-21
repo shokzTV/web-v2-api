@@ -93,7 +93,7 @@ interface IdsRowPacket extends RowDataPacket {
 
 export async function getPublicArticlesIds(): Promise<number[]> {
     const conn = await getConn();
-    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published"');
+    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published" ORDER BY created DESC;');
     await conn.end();
     return articleIds.map(({id}) => id);
 }
