@@ -87,9 +87,22 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
     return mapRows(articles, tags);
 }
 
-export async function getPublicArticles(): Promise<Article[]> {
+interface IdsRowPacket extends RowDataPacket {
+    id: number;
+}
+
+export async function getPublicArticlesIds(): Promise<number[]> {
     const conn = await getConn();
-    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published'`);
+    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published"');
+    await conn.end();
+    return articleIds.map(({id}) => id);
+}
+
+export async function getPublicArticles(articleIds: number[]): Promise<Article[]> {
+    const conn = await getConn();
+    const cond = Array(articleIds.length).fill('?');
+
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published' AND a.id IN (${cond.join(',')})`, articleIds);
     const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id`);
     await conn.end();
     return mapRows(articles, tags);
