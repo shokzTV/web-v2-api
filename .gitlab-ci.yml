@@ -99,7 +99,9 @@ deploy_prod:
     - ssh -p22 $PROD_USER@$PROD_HOST "cd api && yarn install"
     - ssh -p22 $PROD_USER@$PROD_HOST "cd api && node scripts/migrations.js up"
     - ssh -p22 $PROD_USER@$PROD_HOST "sudo pm2 restart $CI_PROJECT_TITLE"
-  when: manual
+  when: manual  
+  allow_failure: true
+
 
 sentry:
   image: 
@@ -123,3 +125,4 @@ sentry:
     - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
   only:
     - master
+  allow_failure: true
