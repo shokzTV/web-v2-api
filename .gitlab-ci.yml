@@ -7,7 +7,6 @@ stages:
   - build
   - deploy_staging
   - deploy_production
-  - sentry
   - notification
 
 include:
@@ -108,7 +107,7 @@ sentry:
   image: 
     name: getsentry/sentry-cli:1.49.0
     entrypoint: [""]
-  stage: sentry
+  stage: notification
   needs:
     - job: build
       artifacts: true
@@ -126,8 +125,7 @@ sentry:
     - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
   only:
     - master
-  when: manual  
-  allow_failure: true
+  when: manual
 
 success_notification:
   stage: notification
