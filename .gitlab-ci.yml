@@ -8,6 +8,7 @@ stages:
   - deploy_staging
   - deploy_production
   - sentry
+  - notification
 
 include:
   stage: test
@@ -125,4 +126,22 @@ sentry:
     - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
   only:
     - master
+  when: manual  
   allow_failure: true
+
+success_notification:
+  stage: notification
+  script:
+    - echo "Success notification"
+    - wget https://raw.githubusercontent.com/DiscordHooks/gitlab-ci-discord-webhook/master/send.sh
+    - chmod +x send.sh
+    - ./send.sh success $WEBHOOK_URL
+  when: on_success
+failure_notification:
+  stage: notification
+  script:
+    - echo "Failure notification"
+    - wget https://raw.githubusercontent.com/DiscordHooks/gitlab-ci-discord-webhook/master/send.sh
+    - chmod +x send.sh
+    - ./send.sh failure $WEBHOOK_URL
+  when: on_failure
