@@ -125,6 +125,7 @@ sentry:
   only:
     - master
   when: manual
+  allow_failure: true
 
 success_notification:
   stage: notification
