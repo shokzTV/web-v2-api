@@ -5,8 +5,7 @@ variables:
 stages:
   - test
   - build
-  - deploy_staging
-  - deploy_production
+  - deploy
   - notification
 
 include:
@@ -46,8 +45,8 @@ build:
     - echo "Building"
     - yarn run build
 
-deploy_staging:
-  stage: deploy_staging
+staging:
+  stage: deploy
   needs:
     - job: build
       artifacts: true
@@ -73,8 +72,8 @@ deploy_staging:
     - ssh -p22 $STAGING_USER@$STAGING_HOST "cd api && yarn migrate"
     - ssh -p22 $STAGING_USER@$STAGING_HOST "sudo pm2 restart $CI_PROJECT_TITLE"
 
-deploy_prod:
-  stage: deploy_production
+production:
+  stage: deploy
   needs:
     - job: build
       artifacts: true
@@ -111,7 +110,7 @@ sentry:
   needs:
     - job: build
       artifacts: true
-    - job: deploy_prod
+    - job: production
       artifacts: false
   script:
     - echo "Uploading JavaScript files to Sentry..."
