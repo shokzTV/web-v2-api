@@ -122,6 +122,7 @@ sentry:
     - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
   only:
     - master
+  when: manual  
   allow_failure: true
 
 success_notification:
