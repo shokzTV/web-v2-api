@@ -110,8 +110,6 @@ sentry:
   needs:
     - job: build
       artifacts: true
-    - job: production
-      artifacts: false
   script:
     - echo "Uploading JavaScript files to Sentry..."
     - export SENTRY_AUTH_TOKEN=$SENTRY_BASE_TOKEN
@@ -124,7 +122,6 @@ sentry:
     - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
   only:
     - master
-  when: manual
   allow_failure: true
 
 success_notification:
