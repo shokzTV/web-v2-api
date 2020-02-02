@@ -52,7 +52,7 @@ async function saveTagCover(name: string, file: UploadedFile): Promise<string> {
 export async function getTags(): Promise<Tag[]> {
     const conn = await getConn();
     const [tags] = await conn.execute<Tag[]>(`
-        SELECT t.id, t.name, t.description, t.image, a.created as lastAction
+        SELECT t.id, t.name, t.description, t.image, UNIX_TIMESTAMP(a.created) as lastAction
           FROM tag t
      LEFT JOIN article_tags at ON at.tag_id = t.id 
      LEFT JOIN article a ON a.id = at.article_id 
