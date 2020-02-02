@@ -5,9 +5,8 @@ variables:
 stages:
   - test
   - build
-  - deploy_staging
-  - deploy_production
-  - sentry
+  - deploy
+  - notification
 
 include:
   stage: test
@@ -46,8 +45,8 @@ build:
     - echo "Building"
     - yarn run build
 
-deploy_staging:
-  stage: deploy_staging
+staging:
+  stage: deploy
   needs:
     - job: build
       artifacts: true
@@ -64,25 +63,25 @@ deploy_staging:
     - master
   script:
     - echo "Uploading build artifacts"
-    - scp -P22 -r package.json $STAGING_USER@$STAGING_HOST:api
-    - scp -P22 -r yarn.lock $STAGING_USER@$STAGING_HOST:api
-    - scp -P22 -r lib/* $STAGING_USER@$STAGING_HOST:api/lib
-    - scp -P22 -r scripts/* $STAGING_USER@$STAGING_HOST:api/scripts
-    - scp -P22 -r migrations/* $STAGING_USER@$STAGING_HOST:api/migrations
-    - ssh -p22 $STAGING_USER@$STAGING_HOST "cd api && yarn install"
-    - ssh -p22 $STAGING_USER@$STAGING_HOST "cd api && yarn migrate"
+    - scp -P22 -r package.json $STAGING_USER@$STAGING_HOST:$CI_PROJECT_TITLE
+    - scp -P22 -r yarn.lock $STAGING_USER@$STAGING_HOST:$CI_PROJECT_TITLE
+    - scp -P22 -r lib/* $STAGING_USER@$STAGING_HOST:$CI_PROJECT_TITLE/lib
+    - scp -P22 -r scripts/* $STAGING_USER@$STAGING_HOST:$CI_PROJECT_TITLE/scripts
+    - scp -P22 -r migrations/* $STAGING_USER@$STAGING_HOST:$CI_PROJECT_TITLE/migrations
+    - ssh -p22 $STAGING_USER@$STAGING_HOST "cd $CI_PROJECT_TITLE && yarn install && yarn migrate"
     - ssh -p22 $STAGING_USER@$STAGING_HOST "sudo pm2 restart $CI_PROJECT_TITLE"
 
-deploy_prod:
-  stage: deploy_production
+
+production:
+  stage: deploy
   needs:
     - job: build
       artifacts: true
-  image: node:13.1.0
+  image: node:13.5.0
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
-    - echo "$SSH_KEY" | tr -d '\r' | ssh-add -
+    - echo "$PROD_SSH_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - ssh-keyscan $PROD_HOST >> ~/.ssh/known_hosts
@@ -91,35 +90,28 @@ deploy_prod:
     - master
   script:
     - echo "Uploading build artifacts"
-    - scp -P22 -r package.json $PROD_USER@$PROD_HOST:api
-    - scp -P22 -r yarn.lock $PROD_USER@$PROD_HOST:api
-    - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:api/lib
-    - scp -P22 -r scripts/* $PROD_USER@$PROD_HOST:api/scripts
-    - scp -P22 -r migrations/* $PROD_USER@$PROD_HOST:api/migrations
-    - ssh -p22 $PROD_USER@$PROD_HOST "cd api && yarn install"
-    - ssh -p22 $PROD_USER@$PROD_HOST "cd api && node scripts/migrations.js up"
+    - scp -P22 -r package.json $PROD_USER@$PROD_HOST:$CI_PROJECT_NAMESPACE/$CI_PROJECT_TITLE
+    - scp -P22 -r yarn.lock $PROD_USER@$PROD_HOST:$CI_PROJECT_NAMESPACE/$CI_PROJECT_TITLE
+    - scp -P22 -r lib/* $PROD_USER@$PROD_HOST:$CI_PROJECT_NAMESPACE/$CI_PROJECT_TITLE/lib
+    - scp -P22 -r scripts/* $PROD_USER@$PROD_HOST:$CI_PROJECT_NAMESPACE/$CI_PROJECT_TITLE/scripts
+    - scp -P22 -r migrations/* $PROD_USER@$PROD_HOST:$CI_PROJECT_NAMESPACE/$CI_PROJECT_TITLE/migrations
+    - ssh -p22 $PROD_USER@$PROD_HOST "cd $CI_PROJECT_NAMESPACE/$CI_PROJECT_TITLE && yarn install && yarn migrate"
     - ssh -p22 $PROD_USER@$PROD_HOST "sudo pm2 restart $CI_PROJECT_TITLE"
   when: manual
-
-sentry:
-  image: 
-    name: getsentry/sentry-cli:1.49.0
-    entrypoint: [""]
-  stage: sentry
-  needs:
-    - job: build
-      artifacts: true
-    - job: deploy_prod
-      artifacts: false
+ 
+success_notification:
+  stage: notification
   script:
-    - echo "Uploading JavaScript files to Sentry..."
-    - export SENTRY_AUTH_TOKEN=$SENTRY_BASE_TOKEN
-    - export SENTRY_ORG=$SENTRY_BASE_ORGANIZATION
-    - export SENTRY_PROJECT=$SENTRY_BASE_PROJECT
-    - sentry-cli releases new -p $SENTRY_BASE_PROJECT "$CI_COMMIT_SHA"
-    - sentry-cli releases files "$CI_COMMIT_SHA" upload-sourcemaps --no-rewrite ./lib/
-    - sentry-cli releases set-commits --auto "$CI_COMMIT_SHA"
-    - sentry-cli releases finalize "$CI_COMMIT_SHA"
-    - sentry-cli releases deploys "$CI_COMMIT_SHA" new -e production
-  only:
-    - master
+    - echo "Success notification"
+    - wget https://raw.githubusercontent.com/DiscordHooks/gitlab-ci-discord-webhook/master/send.sh
+    - chmod +x send.sh
+    - ./send.sh success $WEBHOOK_URL
+  when: on_success
+failure_notification:
+  stage: notification
+  script:
+    - echo "Failure notification"
+    - wget https://raw.githubusercontent.com/DiscordHooks/gitlab-ci-discord-webhook/master/send.sh
+    - chmod +x send.sh
+    - ./send.sh failure $WEBHOOK_URL
+  when: on_failure
