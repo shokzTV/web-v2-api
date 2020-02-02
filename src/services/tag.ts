@@ -22,7 +22,7 @@ export async function requireTags(tags: string[] = []): Promise<TagIdMap> {
         const unknownTags = tags.filter((tag) => !knownNames.includes(tag));
     
         for(const unknwonTag of unknownTags) {
-            const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, image) VALUES (NULL, ?, "")', [unknwonTag]);
+            const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image) VALUES (NULL, ?, "", "")', [unknwonTag]);
             mappedTags[unknwonTag] = insertId;
         }
     
@@ -51,29 +51,32 @@ async function saveTagCover(name: string, file: UploadedFile): Promise<string> {
 
 export async function getTags(): Promise<Tag[]> {
     const conn = await getConn();
-    const [tags] = await conn.execute<Tag[]>('SELECT id, name, image FROM tag');
+    const [tags] = await conn.execute<Tag[]>('SELECT id, name, description, image FROM tag');
     await conn.end();
     return tags;
 }
 
-export async function createTag(name: string, image?: UploadedFile): Promise<number> {
+export async function createTag(name: string, description: string, image?: UploadedFile): Promise<number> {
     const conn = await getConn();
     
     let imagePath: string|null= '';
     if(image) {
         imagePath = await saveTagCover(name, image);
     }
-    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, image) VALUE (NULL, ?, ?);', [name, imagePath]);
+    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image) VALUE (NULL, ?, ?, ?);', [name, description, imagePath]);
     await conn.end();
 
     return insertId;
 }
 
-export async function patchTag(id: number, name?: string, image?: UploadedFile): Promise<void> {
+export async function patchTag(id: number, name?: string, description?: string, image?: UploadedFile): Promise<void> {
     const conn = await getConn();
 
     if(name) {
         await conn.execute('UPDATE tag SET name=? WHERE id=?', [name, id]);
+    }
+    if(description) {
+        await conn.execute('UPDATE tag SET description=? WHERE id=?', [description, id]);
     }
 
     if(image) {
