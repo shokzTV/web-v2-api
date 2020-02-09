@@ -4,6 +4,7 @@ import rightRoutes from './routes/right';
 import roleRoutes from './routes/role';
 import tagRoutes from './routes/tag';
 import articleRoutes from './routes/article';
+import videoRoutes from './routes/video';
 import { PassportStatic } from 'passport';
 
 export default ({passport}: {passport: PassportStatic}) => {
@@ -15,6 +16,7 @@ export default ({passport}: {passport: PassportStatic}) => {
 	rightRoutes(app);
 	tagRoutes(app);
 	articleRoutes(app);
+	videoRoutes(app);
 	
 	return app;
 }
