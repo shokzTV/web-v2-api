@@ -12,7 +12,7 @@ async function donwloadThumbnail(url: string): Promise<string> {
     const imgHash = uuid(videoData._id, uuid.URL);
     const relativePath = `/static/videoThumbs/${imgHash}.jpg`;
     const path = __dirname + `/../..${relativePath}`;
-    const res = await fetch(url);
+    const res = await fetch(videoData.thumbnails.large[0].url);
     const fileStream = fs.createWriteStream(path);
     await new Promise((resolve, reject) => {
         res.body.pipe(fileStream);
