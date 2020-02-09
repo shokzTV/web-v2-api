@@ -49,7 +49,7 @@ interface Video {
 export async function listVideos(): Promise<Video[]> {
     const conn = await getConn();
     const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail FROM video v;`);
-    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image FROM video_tags vt INNER JOIN tag t ON t.id = at.tag_id`);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image FROM video_tags vt INNER JOIN tag t ON t.id = vt.tag_id`);
     await conn.end();
 
     return mapRows(videos, tags);
