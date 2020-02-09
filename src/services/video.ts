@@ -8,7 +8,6 @@ import { requireTags, Tag } from "./tag";
 
 async function donwloadThumbnail(url: string): Promise<string> {
     const videoData = await fetchVideoByUrl(url);
-    console.log(videoData);
 
     const imgHash = uuid(videoData._id, uuid.URL);
     const relativePath = `/static/videoThumbs/${imgHash}.jpg`;
