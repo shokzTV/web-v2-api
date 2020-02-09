@@ -84,8 +84,10 @@ export async function createVideo(title: string, source: string, tags: string[])
 export async function patchVideo(videoId: number, title: string, tags: string[]): Promise<void> {
     const conn = await getConn();
     await conn.execute('UPDATE video SET title=? WHERE id=?', [title, videoId]);
-    await conn.execute('DELETE FROM video_tags WHERE video_id = ?', [videoId]);
-    await assignTags(videoId, tags);
+    if(tags.length > 0 ) {
+        await conn.execute('DELETE FROM video_tags WHERE video_id = ?', [videoId]);
+        await assignTags(videoId, tags);
+    }
     await conn.end();
 }
 
