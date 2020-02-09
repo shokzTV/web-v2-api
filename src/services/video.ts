@@ -3,9 +3,8 @@ import uuid from 'uuid/v5';
 import fetch from 'node-fetch';
 import fs from 'fs';
 import { getConn } from "../db";
-import { OkPacket } from "mysql2";
-import { requireTags } from "./tag";
-
+import { OkPacket, RowDataPacket } from "mysql2";
+import { requireTags, Tag } from "./tag";
 
 async function donwloadThumbnail(url: string): Promise<string> {
     const videoData = await fetchVideoByUrl(url);
@@ -24,7 +23,47 @@ async function donwloadThumbnail(url: string): Promise<string> {
     return relativePath;
 }
 
-    
+interface VideoRow extends RowDataPacket {
+    videoId: number;
+    title: string;
+    source: string;
+    thumbnail: string;
+}
+
+interface TagResponse extends Tag {
+    video: number;
+}
+
+interface Video {
+    id: number;
+    title: string;
+    source: string;
+    thumbnail: string;
+    tags: Array<{
+        id: number;
+        name: string;
+        image?: string;
+    }>;
+}
+
+export async function listVideos(): Promise<Video[]> {
+    const conn = await getConn();
+    const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail FROM video v;`);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image FROM video_tags vt INNER JOIN tag t ON t.id = at.tag_id`);
+    await conn.end();
+
+    return mapRows(videos, tags);
+}
+
+function mapRows(rows: VideoRow[], tags: TagResponse[]): Video[] {
+    return rows.map((v) => ({
+        id: v.videoId,
+        title: v.title,
+        source: v.source,
+        thumbnail: v.thumbnail,
+        tags: tags.filter(({video}) => video === v.videoId).map(({id, name, image}) => ({id, name, image})),
+    }));
+} 
 
 export async function createVideo(title: string, source: string, tags: string[]): Promise<number> {
     const conn = await getConn();
@@ -40,8 +79,6 @@ export async function createVideo(title: string, source: string, tags: string[])
     await conn.end();
 
     return insertId;
-    
-    return 0;
 }
 
 export async function patchVideo(videoId: number, title: string, tags: string[]): Promise<void> {

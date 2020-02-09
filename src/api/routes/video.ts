@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
-import { createVideo, patchVideo, deleteVideo } from '../../services/video';
+import { createVideo, patchVideo, deleteVideo, listVideos } from '../../services/video';
 
 const route = Router();
 
@@ -15,7 +15,8 @@ export default (app: Router) => {
     app.use('/video', route);
 
     route.get('/list', async (req: Request, res: Response) => {
-        return res.json([]).status(200);
+        const videos = await listVideos()
+        return res.json(videos).status(200);
     });
 
     route.post('/create', checkUserRole('VIDEO_CREATE'), async (req: Request, res: Response) => {
