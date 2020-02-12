@@ -63,7 +63,7 @@ export async function getTags(): Promise<Tag[]> {
     return tags;
 }
 
-export async function createTag(name: string, description: string, image?: UploadedFile): Promise<number> {
+export async function createTag(name: string, description: string = '', image?: UploadedFile): Promise<number> {
     const conn = await getConn();
     
     let imagePath: string|null= '';
