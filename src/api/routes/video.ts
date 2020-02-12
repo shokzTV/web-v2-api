@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
-import { createVideo, patchVideo, deleteVideo, listVideos } from '../../services/video';
+import { createVideo, patchVideo, deleteVideo, listVideos, getVideoIds, loadVideosById } from '../../services/video';
 
 const route = Router();
 
@@ -14,8 +14,19 @@ function getTags(tags: string | string[]): string[] {
 export default (app: Router) => {
     app.use('/video', route);
 
+    route.get('/ids', async (req: Request, res: Response) => {
+        const videos = await getVideoIds();
+        return res.json(videos).status(200);
+    });
+
     route.get('/list', async (req: Request, res: Response) => {
-        const videos = await listVideos()
+        const ids = req.query.ids ? req.query.ids.map((id: string) => +id) : [];
+        let videos = [];
+        if(ids.length) {
+            videos = await loadVideosById(ids);
+        } else {
+            videos = await listVideos();
+        }
         return res.json(videos).status(200);
     });
 
