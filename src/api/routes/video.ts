@@ -1,15 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
 import { createVideo, patchVideo, deleteVideo, listVideos, getVideoIds, loadVideosById } from '../../services/video';
+import { getTagsFromBody, getIdsFromRequest } from './helper';
 
 const route = Router();
-
-function getTags(tags: string | string[]): string[] {
-    if(typeof tags === 'string') {
-        return [tags];
-    }
-    return tags;
-}
 
 export default (app: Router) => {
     app.use('/video', route);
@@ -20,7 +14,7 @@ export default (app: Router) => {
     });
 
     route.get('/list', async (req: Request, res: Response) => {
-        const ids = req.query.ids ? req.query.ids.map((id: string) => +id) : [];
+        const ids = getIdsFromRequest(req);
         let videos = [];
         if(ids.length) {
             videos = await loadVideosById(ids);
@@ -32,16 +26,16 @@ export default (app: Router) => {
 
     route.post('/create', checkUserRole('VIDEO_CREATE'), async (req: Request, res: Response) => {
         const {title, source} = req.body;
-        const videoId = await createVideo(title, source, getTags(req.body.tags));
+        const videoId = await createVideo(title, source, getTagsFromBody(req.body.tags));
         return res.json(videoId).status(201);
     });
 
     route.patch('/:videoId', checkUserRole('VIDEO_EDIT'), async (req: Request, res: Response) => {
-        await patchVideo(+req.params.videoId, req.body.title, getTags(req.body.tags));
+        await patchVideo(+req.params.videoId, req.body.title, getTagsFromBody(req.body.tags));
         return res.send().status(204);
     });
 
-    route.delete('/:videoId', checkUserRole('VIDEO_EDIT'), async (req: Request, res: Response) => {
+    route.delete('/:videoId', checkUserRole('VIDEO_DELETE'), async (req: Request, res: Response) => {
         await deleteVideo(+req.params.videoId);
         return res.send().status(204);
     });

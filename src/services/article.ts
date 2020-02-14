@@ -1,9 +1,8 @@
 import { UploadedFile } from 'express-fileupload';
 import { getConn } from '../db';
-import uuid from 'uuid/v5';
 import { OkPacket, RowDataPacket } from 'mysql2';
 import {requireTags, Tag} from './tag';
-import sharp from 'sharp';
+import { saveFormFile } from './File';
 
 enum Status {
     draft = 'draft',
@@ -113,16 +112,7 @@ export async function createDraft(title: string, body: string, tags: string[], u
     
     let imagePath: string= '';
     if(cover) {
-        const imgHash = uuid(title, uuid.URL);
-        imagePath = `/static/covers/${imgHash}.jpeg`;
-        const orgImagePath = `/static/covers/${imgHash}_orig.jpeg`;
-        await sharp(cover.data)
-            .resize({ width: 512, height: 288 })
-            .jpeg()
-            .toFile(__dirname + `/../..${imagePath}`);
-        await sharp(cover.data)
-            .jpeg()
-            .toFile(__dirname + `/../..${orgImagePath}`);
+        imagePath = await saveFormFile('covers', title, cover);
     }
 
     const [{insertId}] = await conn.execute<OkPacket>(

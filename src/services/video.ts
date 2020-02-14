@@ -1,28 +1,12 @@
 import { fetchVideoByUrl } from "./twitchapi";
-import uuid from 'uuid/v5';
-import fetch from 'node-fetch';
-import fs from 'fs';
 import { getConn } from "../db";
 import { OkPacket, RowDataPacket } from "mysql2";
 import { requireTags, Tag } from "./tag";
+import {streamFile} from './File';
 
 async function donwloadThumbnail(url: string): Promise<string> {
     const videoData = await fetchVideoByUrl(url);
-
-    const imgHash = uuid(videoData._id, uuid.URL);
-    const imgUrl = videoData.preview.large;
-    const fileType = imgUrl.substring(imgUrl.lastIndexOf('.'));
-    const relativePath = `/static/videoThumbs/${imgHash}${fileType}`;
-    const path = __dirname + `/../..${relativePath}`;
-    const res = await fetch(videoData.preview.large);
-    const fileStream = fs.createWriteStream(path);
-    await new Promise((resolve, reject) => {
-        res.body.pipe(fileStream);
-        res.body.on('error', (err: string) => reject(err));
-        fileStream.on('finish', () => resolve());
-    });
-
-    return relativePath;
+    return await streamFile('videoThumbs', videoData.preview.large, videoData._id);
 }
 
 interface VideoRow extends RowDataPacket {
@@ -54,7 +38,7 @@ interface IdsRowPacket extends RowDataPacket {
 
 export async function getVideoIds(): Promise<number[]> {
     const conn = await getConn();
-    const [videoIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM video WHERE ORDER BY id DESC;');
+    const [videoIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM video ORDER BY id DESC;');
     await conn.end();
     return videoIds.map(({id}) => id);
 }

@@ -1,26 +1,13 @@
 import { User } from "../entities/User";
 import { RowDataPacket, OkPacket } from "mysql2";
 import { getConn } from "../db";
-import fs from 'fs';
-import uuid from 'uuid/v5';
-import fetch from 'node-fetch';
 import { getUserRoleRights } from "./role";
+import { streamFile } from "./File";
 
 type UserResponse = User & RowDataPacket & OkPacket;
 
 async function downloadUserAvatar(url: string, userId: number): Promise<string> {
-    const imgHash = uuid(`${userId}`, uuid.URL);
-    const relativePath = `/static/userAvatar/${imgHash}.jpg`;
-    const path = __dirname + `/../..${relativePath}`;
-    const res = await fetch(url);
-    const fileStream = fs.createWriteStream(path);
-    await new Promise((resolve, reject) => {
-        res.body.pipe(fileStream);
-        res.body.on('error', (err: string) => reject(err));
-        fileStream.on('finish', () => resolve());
-    });
-
-    return relativePath;
+    return streamFile('userAvatar', url, '' + userId);
 }
 
 export async function findOrCreateUser(twitchId: number, displayName: string, avatar: string): Promise<User> {
