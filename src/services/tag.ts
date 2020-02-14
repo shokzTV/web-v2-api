@@ -1,8 +1,7 @@
 import { getConn } from "../db";
 import { RowDataPacket, OkPacket } from "mysql2";
 import { UploadedFile } from "express-fileupload";
-import uuid from 'uuid/v5';
-import sharp from 'sharp';
+import { saveFormFile } from "./File";
 
 type TagIdMap = {[x: string]: number};
 
@@ -34,19 +33,7 @@ export async function requireTags(tags: string[] = []): Promise<TagIdMap> {
 }
 
 async function saveTagCover(name: string, file: UploadedFile): Promise<string> {
-    let imagePath: string|null= null;
-    const imgHash = uuid(name, uuid.URL);
-    imagePath = `/static/tags/${imgHash}.jpeg`;
-    const orgImagePath = `/static/tags/${imgHash}_orig.jpeg`;
-    await sharp(file.data)
-            .jpeg()
-            .resize({ width: 512, height: 288 })
-            .toFile(__dirname + `/../..${imagePath}`);
-    await sharp(file.data)
-            .jpeg()
-            .toFile(__dirname + `/../..${orgImagePath}`);
-
-    return imagePath;
+    return await saveFormFile('tags', name, file);
 }
 
 export async function getTags(): Promise<Tag[]> {

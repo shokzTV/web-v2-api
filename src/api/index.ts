@@ -5,6 +5,7 @@ import roleRoutes from './routes/role';
 import tagRoutes from './routes/tag';
 import articleRoutes from './routes/article';
 import videoRoutes from './routes/video';
+import organizerRoutes from './routes/organizer';
 import { PassportStatic } from 'passport';
 
 export default ({passport}: {passport: PassportStatic}) => {
@@ -17,6 +18,7 @@ export default ({passport}: {passport: PassportStatic}) => {
 	tagRoutes(app);
 	articleRoutes(app);
 	videoRoutes(app);
+	organizerRoutes(app);
 	
 	return app;
 }
