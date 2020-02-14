@@ -1,10 +1,10 @@
 import { Request } from "express";
 
-export function getTagsFromBody(tags: string | string[]): string[] {
-    if(typeof tags === 'string') {
-        return [tags];
+export function getArrayFromBody<T = string>(type: T | T[]): T[] {
+    if(!(type instanceof Array)) {
+        return [type];
     }
-    return tags;
+    return type;
 }
 
 export function getIdsFromRequest(req: Request): number[] {
