@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
 import { createVideo, patchVideo, deleteVideo, listVideos, getVideoIds, loadVideosById } from '../../services/video';
-import { getTagsFromBody, getIdsFromRequest } from './helper';
+import { getArrayFromBody, getIdsFromRequest } from './helper';
 
 const route = Router();
 
@@ -26,12 +26,12 @@ export default (app: Router) => {
 
     route.post('/create', checkUserRole('VIDEO_CREATE'), async (req: Request, res: Response) => {
         const {title, source} = req.body;
-        const videoId = await createVideo(title, source, getTagsFromBody(req.body.tags));
+        const videoId = await createVideo(title, source, getArrayFromBody(req.body.tags));
         return res.json(videoId).status(201);
     });
 
     route.patch('/:videoId', checkUserRole('VIDEO_EDIT'), async (req: Request, res: Response) => {
-        await patchVideo(+req.params.videoId, req.body.title, getTagsFromBody(req.body.tags));
+        await patchVideo(+req.params.videoId, req.body.title, getArrayFromBody(req.body.tags));
         return res.send().status(204);
     });
 

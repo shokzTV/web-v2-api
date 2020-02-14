@@ -1,6 +1,8 @@
 import { Organizer } from "./Organizer";
 import { Tag } from "../services/tag";
 
+export type EventDescriptionType = 'description' | 'information' | 'advice';
+export type EventLinkType = 'homepage' | 'liquipedia' | 'custom';
 
 export interface Event {
     id: number;
@@ -14,7 +16,7 @@ export interface Event {
     pricePool: string;
     banner: string;
     description: string;
-    descriptionType: 'description' | 'information' | 'advice';
+    descriptionType: EventDescriptionType;
     disclaimer: string;
     isFeatured: boolean;
     isMainEvent: boolean;
@@ -23,7 +25,7 @@ export interface Event {
 export interface EventLink {
     id: number;
     event: number;
-    linkType: 'homepage' | 'liquipedia' | 'custom';
+    linkType: EventLinkType;
     name: string;
     link: string;
 }
