@@ -6,6 +6,7 @@ import tagRoutes from './routes/tag';
 import articleRoutes from './routes/article';
 import videoRoutes from './routes/video';
 import organizerRoutes from './routes/organizer';
+import eventRoutes from './routes/event';
 import { PassportStatic } from 'passport';
 
 export default ({passport}: {passport: PassportStatic}) => {
@@ -19,6 +20,7 @@ export default ({passport}: {passport: PassportStatic}) => {
 	articleRoutes(app);
 	videoRoutes(app);
 	organizerRoutes(app);
+	eventRoutes(app);
 	
 	return app;
 }

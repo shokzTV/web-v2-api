@@ -4,7 +4,7 @@ import fetch from 'node-fetch';
 import sharp from 'sharp';
 import { UploadedFile } from 'express-fileupload';
 
-type FileTypes = 'videoThumbs' | 'tags' | 'covers' | 'userAvatar' | 'organizer/icon' | 'organizer/logo';
+type FileTypes = 'videoThumbs' | 'tags' | 'covers' | 'userAvatar' | 'organizer/icon' | 'organizer/logo' | 'organizer/eventlogo';
 
 function buildPathWithType(type: FileTypes, identifier: string, name: string): string {
     return `${buildPath(type, identifier)}${getFileType(name)}`;
