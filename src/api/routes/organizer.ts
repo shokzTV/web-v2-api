@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getOrganizer, createOrganizer, updateOrganizer, deleteOrganizer } from '../../services/organizer';
 import { getIdsFromRequest } from './helper';
 import { UploadedFile } from 'express-fileupload';
+import { Organizer } from '../../entities/Organizer';
 
 const route = Router();
 
@@ -10,7 +11,10 @@ export default (app: Router) => {
 
     route.get('/list', async (req: Request, res: Response) => {
         const ids = getIdsFromRequest(req);
-        const organizer = await getOrganizer(ids);
+        let organizer: Organizer[] = [];
+        if(ids.length > 0) {
+            organizer = await getOrganizer(ids);
+        }
         return res.json(organizer).status(200);
     });
 

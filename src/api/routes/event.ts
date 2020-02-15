@@ -2,8 +2,6 @@ import { Router, Request, Response } from 'express';
 import { getMainEvent, getEvents, deleteEvent, changeMainEvent, toggleFeatureEvent, getEventIds, createEvent, upadteEvent } from '../../services/event';
 import { getIdsFromRequest, getArrayFromBody } from './helper';
 import { UploadedFile } from 'express-fileupload';
-import { EventLinkType } from '../../entities/Event';
-import { requireTags } from '../../services/tag';
 
 const route = Router();
 
@@ -41,7 +39,7 @@ export default (app: Router) => {
             disclaimer = ''
         } = req.body;
         const tags = getArrayFromBody(req.body.tags);
-        const links = getArrayFromBody<{type: EventLinkType, name: string, source: string}>(req.body.links);
+        const links = getArrayFromBody(req.body.links);
         const {banner = null, organizationLogo = null} = req.files || {};
         const eventId = await createEvent(
             name,

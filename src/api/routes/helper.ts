@@ -1,6 +1,9 @@
 import { Request } from "express";
 
 export function getArrayFromBody<T = string>(type: T | T[]): T[] {
+    if(! type) {
+        return [];
+    }
     if(!(type instanceof Array)) {
         return [type];
     }
