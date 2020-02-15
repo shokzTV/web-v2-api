@@ -55,8 +55,8 @@ export async function getEvents(ids: number[]): Promise<DecoratedEvent[]> {
         description,
         description_type as descriptionType,
         disclaimer,
-        is_featured as isFeatured,
-        is_main_event as isMainEvent
+        CAST(is_featured AS UNSIGNED) as isFeatured,
+        CAST(is_main_event AS UNSIGNED) as isMainEvent
       FROM event WHERE id IN (${cond.join(',')})`, ids);
     const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${cond.join(',')})`, ids);
     const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links WHERE event_id IN (${cond.join(',')})`, ids);
@@ -70,8 +70,6 @@ export async function getEvents(ids: number[]): Promise<DecoratedEvent[]> {
         links: eventLinks.filter(({event: linkEvent}) => linkEvent === event.id),
     }));
 }
-
-type RawLinks = Array<{type: EventLinkType, name: string, source: string}>;
 
 export async function createEvent(
     name: string,
@@ -88,7 +86,7 @@ export async function createEvent(
     banner: null | UploadedFile,
     organizerLogo: null | UploadedFile,
     tags: string[],
-    links: RawLinks,
+    links: string[],
 ): Promise<number> {
     let bannerPath: string = '', organizerLogoPath: string = '';
     if(banner) {
@@ -101,7 +99,7 @@ export async function createEvent(
     const conn = await getConn();
     const [{insertId}] = await conn.execute<OkPacket>(`
         INSERT INTO event (id, organizer_id, name, description_short, start, end, country, location, price_pool, banner, description, description_type, disclaimer, organizer_logo, is_featured, is_main_event) VALUE 
-        (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0);`, 
+        (NULL, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?, ?, ?, b'0', b'0');`, 
     [organizer, name, descShort, start, end, country, location, price, bannerPath, description, descriptionType, disclaimer, organizerLogoPath]);
     await assignTags(insertId, tags);
     await assignLinks(insertId, links);
@@ -183,24 +181,29 @@ async function assignTags(eventId: number, tags: string[] = []): Promise<void> {
     await conn.end();
 }
 
-async function assignLinks(eventId: number, links: RawLinks = []): Promise<void> {
+async function assignLinks(eventId: number, links: string[] = []): Promise<void> {
     const conn = await getConn();
-    for(const {name, source, type} of links) {
-        await conn.execute('INSERT INTO event_links (id, event_id, link_type, name, link) VALUES (NULL, ?, ?, ?, ?);', [eventId, type, name, source]);
+    try {
+        for(const link of links) {
+            const {type, name, source} = JSON.parse(link);
+            await conn.execute('INSERT INTO event_links (id, event_id, link_type, name, link) VALUES (NULL, ?, ?, ?, ?);', [eventId, type, name, source]);
+        }
+    } catch(err) {
+        console.log(err);
     }
     await conn.end();
 }
 
 export async function toggleFeatureEvent(eventId: number, feature: boolean): Promise<void> {
     const conn = await getConn();
-    await conn.execute('UPDATE event SET is_featured = ? WHERE id = ?', [feature ? '1' : '0', eventId]);
+    await conn.execute('UPDATE event SET is_featured = ? WHERE id = ?', [feature ? 1 : 0, eventId]);
     await conn.end();
 }
 
 export async function changeMainEvent(eventId: number): Promise<void> {
     const conn = await getConn();
-    await conn.execute('UPDATE event SET is_main_event = 0');
-    await conn.execute('UPDATE event SET is_main_event = 1 WHERE id = ?', [eventId]);
+    await conn.execute(`UPDATE event SET is_main_event = 0`);
+    await conn.execute(`UPDATE event SET is_main_event = 1 WHERE id = ?`, [eventId]);
     await conn.end();
 }
 
