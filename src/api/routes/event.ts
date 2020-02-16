@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { getMainEvent, getEvents, deleteEvent, changeMainEvent, toggleFeatureEvent, getEventIds, createEvent, upadteEvent } from '../../services/event';
 import { getIdsFromRequest, getArrayFromBody } from './helper';
 import { UploadedFile } from 'express-fileupload';
+import { checkUserRole } from '../../middlewares/access';
 
 const route = Router();
 
@@ -24,7 +25,7 @@ export default (app: Router) => {
         return res.json(events).status(200);
     });
     
-    route.post('/create', async (req: Request, res: Response) => {
+    route.post('/create', checkUserRole('EVENT_CREATE'), async (req: Request, res: Response) => {
         const {
             name,
             organizer,
@@ -61,7 +62,7 @@ export default (app: Router) => {
         return res.json(eventId).status(200);
     });
 
-    route.patch('/:eventId', async (req: Request, res: Response) => {
+    route.patch('/:eventId', checkUserRole('EVENT_EDIT'), async (req: Request, res: Response) => {
         const {
             name,
             organizer,
@@ -95,22 +96,22 @@ export default (app: Router) => {
         return res.send().status(204);
     });
     
-    route.put('/unfeature/:eventId', async (req: Request, res: Response) => {
+    route.put('/unfeature/:eventId', checkUserRole('EVENT_FEATURE'), async (req: Request, res: Response) => {
         await toggleFeatureEvent(+req.params.eventId, false);
         return res.send().status(204);
     });
     
-    route.put('/feature/:eventId', async (req: Request, res: Response) => {
+    route.put('/feature/:eventId', checkUserRole('EVENT_FEATURE'), async (req: Request, res: Response) => {
         await toggleFeatureEvent(+req.params.eventId, true);
         return res.send().status(204);
     });
 
-    route.put('/mainEvent/:eventId', async (req: Request, res: Response) => {
+    route.put('/mainEvent/:eventId', checkUserRole('EVENT_MAIN_EVENT'), async (req: Request, res: Response) => {
         await changeMainEvent(+req.params.eventId);
         return res.send().status(204);
     });
     
-    route.delete('/:eventId', async (req: Request, res: Response) => {
+    route.delete('/:eventId', checkUserRole('EVENT_DELETE'), async (req: Request, res: Response) => {
         await deleteEvent(+req.params.eventId);
         return res.send().status(204);
     });

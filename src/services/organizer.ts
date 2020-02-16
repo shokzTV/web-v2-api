@@ -6,10 +6,17 @@ import { saveFormFile, removeFile } from './File';
 
 type OrganizerRow  = Organizer & RowDataPacket;
 
+export async function getAllOrganizer(): Promise<Organizer[]> {
+    const conn = await getConn();
+    const [organizer] = await conn.execute<OrganizerRow[]>(`SELECT id, name, logo, logo_small as icon from organizer`);
+    await conn.end();
+    return organizer;
+}
+
 export async function getOrganizer(ids: number[]): Promise<Organizer[]> {
     const conn = await getConn();
     const cond = Array(ids.length).fill('?');
-    const [organizer] = await conn.execute<OrganizerRow[]>(`SELECT * from organizer WHERE id IN (${cond.join(',')})`, ids);
+    const [organizer] = await conn.execute<OrganizerRow[]>(`SELECT id, name, logo, logo_small as icon from organizer WHERE id IN (${cond.join(',')})`, ids);
     await conn.end();
     return organizer;
 }
