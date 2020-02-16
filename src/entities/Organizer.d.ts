@@ -5,4 +5,5 @@ export interface Organizer {
     description: string;
     icon: string;
     logo: string;
+    events: number;
 }

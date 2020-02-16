@@ -9,6 +9,7 @@ if (!envFound) {
 }
 
 export default {
+  env: process.env.NODE_ENV || 'production',
   port: process.env.PORT || 80,
   secret: process.env.secret || 'someawesomesecret',
   jwt_secret: process.env.JWT_SECRET || 'anotherawesomesecret',
