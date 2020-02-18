@@ -244,7 +244,7 @@ export async function changeMainEvent(eventId: number): Promise<void> {
 export async function deleteEvent(eventId: number): Promise<void> {
     const conn = await getConn();
     const [events] = await conn.execute<EventRow[]>(`SELECT banner FROM event WHERE id = ?`, [eventId]);
-    const eventBanner = events[0].banner;
+    const eventBanner = events[0] ? events[0].banner : '';
     eventBanner.length > 0 && removeFile(eventBanner);
 
     await conn.execute('DELETE FROM event_links WHERE event_id = ?', [eventId]);
