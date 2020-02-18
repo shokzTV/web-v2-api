@@ -42,7 +42,7 @@ export async function getAllEvents(): Promise<DecoratedEvent[]> {
     const [events] = await conn.execute<EventRow[]>(`
       SELECT 
         id, 
-        organizer_id as oranizer, 
+        organizer_id as organizer, 
         name, 
         description_short as descriptionShort, 
         UNIX_TIMESTAMP(start) as start, 
@@ -77,7 +77,7 @@ export async function getEvents(ids: number[]): Promise<DecoratedEvent[]> {
     const [events] = await conn.execute<EventRow[]>(`
       SELECT 
         id, 
-        organizer_id as oranizer, 
+        organizer_id as organizer, 
         name, 
         description_short as descriptionShort, 
         UNIX_TIMESTAMP(start) as start, 
@@ -177,10 +177,10 @@ export async function upadteEvent(
         await conn.execute('UPDATE event SET description_short = ? WHERE id = ?', [descShort, eventId]);
     }
     if(start) {
-        await conn.execute('UPDATE event SET start = ? WHERE id = ?', [start, eventId]);
+        await conn.execute('UPDATE event SET start = FROM_UNIXTIME(?) WHERE id = ?', [start, eventId]);
     }
     if(end) {
-        await conn.execute('UPDATE event SET end = ? WHERE id = ?', [end, eventId]);
+        await conn.execute('UPDATE event SET end = FROM_UNIXTIME(?) WHERE id = ?', [end, eventId]);
     }
     if(country) {
         await conn.execute('UPDATE event SET country = ? WHERE id = ?', [country, eventId]);
