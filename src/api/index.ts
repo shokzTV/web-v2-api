@@ -7,6 +7,7 @@ import articleRoutes from './routes/article';
 import videoRoutes from './routes/video';
 import organizerRoutes from './routes/organizer';
 import eventRoutes from './routes/event';
+import newsRoute from './routes/news';
 import { PassportStatic } from 'passport';
 
 export default ({passport}: {passport: PassportStatic}) => {
@@ -21,6 +22,7 @@ export default ({passport}: {passport: PassportStatic}) => {
 	videoRoutes(app);
 	organizerRoutes(app);
 	eventRoutes(app);
+	newsRoute(app);
 	
 	return app;
 }
