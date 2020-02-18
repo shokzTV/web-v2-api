@@ -36,6 +36,40 @@ export async function getMainEvent(): Promise<DecoratedEvent | undefined> {
     return;
 }
 
+export async function getAllEvents(): Promise<DecoratedEvent[]> {
+    const conn = await getConn();
+
+    const [events] = await conn.execute<EventRow[]>(`
+      SELECT 
+        id, 
+        organizer_id as oranizer, 
+        name, 
+        description_short as descriptionShort, 
+        UNIX_TIMESTAMP(start) as start, 
+        UNIX_TIMESTAMP(end) as end,
+        country,
+        location,
+        price_pool as pricePool,
+        banner,
+        description,
+        description_type as descriptionType,
+        disclaimer,
+        CAST(is_featured AS UNSIGNED) as isFeatured,
+        CAST(is_main_event AS UNSIGNED) as isMainEvent
+      FROM event`);
+    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id`);
+    const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links`);
+    const [organizers] = await conn.execute<OrganizerRow[]>('SELECT * from organizer');
+    await conn.end();
+
+    return events.map((event) => ({
+        ...event,
+        organizer: (organizers.find(({id}) => id === event.organizer) as Organizer),
+        tags: eventTags.filter(({event: tagEvent}) => tagEvent === event.id),
+        links: eventLinks.filter(({event: linkEvent}) => linkEvent === event.id),
+    }));
+}
+
 export async function getEvents(ids: number[]): Promise<DecoratedEvent[]> {
     const conn = await getConn();
 
