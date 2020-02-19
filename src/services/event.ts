@@ -155,7 +155,9 @@ export async function upadteEvent(
     descriptionType?: EventDescriptionType,
     disclaimer?: string,
     banner?: null | UploadedFile,
-    organizerLogo?: null | UploadedFile
+    organizerLogo?: null | UploadedFile,
+    tags?: string[],
+    links?: string[],
 ): Promise<void> {
     const conn = await getConn();
     const oldEvent = (await getEvents([eventId]))[0];
@@ -199,6 +201,14 @@ export async function upadteEvent(
     }
     if(disclaimer) {
         await conn.execute('UPDATE event SET disclaimer = ? WHERE id = ?', [disclaimer, eventId]);
+    }
+    if(tags && tags.length > 0) {
+        await conn.execute('DELETE FROM event_tags WHERE event_id = ?', [eventId]);
+        assignTags(eventId, tags);
+    }
+    if(links && links.length > 0) {
+        await conn.execute('DELETE FROM event_links WHERE event_id = ?', [eventId]);
+        assignLinks(eventId, links);
     }
     await conn.end();
 }

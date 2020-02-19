@@ -11,14 +11,14 @@ export interface News extends RowDataPacket {
 
 export async function getNews(): Promise<News[]> {
     const conn = await getConn();
-    const [news] = await conn.execute<News[]>('SELECT id, headline, description, source, created FROM events');
+    const [news] = await conn.execute<News[]>('SELECT id, headline, description, source, created FROM news');
     await conn.end();
     return news;
 }
 
 export async function createNews(name: string, description: string = '', source: string, userId: number): Promise<number> {
     const conn = await getConn();
-    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO news (id, user_id, name, description, source, created) VALUE (NULL, ?, ?, ?, ?, NOW());', [userId, name, description, source]);
+    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO news (id, user_id, headline, description, source, created) VALUE (NULL, ?, ?, ?, ?, NOW());', [userId, name, description, source]);
     await conn.end();
     return insertId;
 }
@@ -27,7 +27,7 @@ export async function editNews(id: number, name?: string, description?: string, 
     const conn = await getConn();
 
     if(name) {
-        await conn.execute('UPDATE news SET name=? WHERE id=?', [name, id]);
+        await conn.execute('UPDATE news SET headline=? WHERE id=?', [name, id]);
     }
 
     if(description) {
