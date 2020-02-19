@@ -16,7 +16,7 @@ export async function getNews(): Promise<News[]> {
     return news;
 }
 
-export async function createNews(name: string, description: string = '', source: string, userId: number): Promise<number> {
+export async function createNews(name: string, description: string = '', source: string = '', userId: number): Promise<number> {
     const conn = await getConn();
     const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO news (id, user_id, headline, description, source, created) VALUE (NULL, ?, ?, ?, ?, NOW());', [userId, name, description, source]);
     await conn.end();
