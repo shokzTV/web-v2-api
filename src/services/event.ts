@@ -202,11 +202,11 @@ export async function upadteEvent(
     if(disclaimer) {
         await conn.execute('UPDATE event SET disclaimer = ? WHERE id = ?', [disclaimer, eventId]);
     }
-    if(tags && tags.length > 0) {
+    if(tags) {
         await conn.execute('DELETE FROM event_tags WHERE event_id = ?', [eventId]);
         assignTags(eventId, tags);
     }
-    if(links && links.length > 0) {
+    if(links) {
         await conn.execute('DELETE FROM event_links WHERE event_id = ?', [eventId]);
         assignLinks(eventId, links);
     }
@@ -228,9 +228,9 @@ async function assignTags(eventId: number, tags: string[] = []): Promise<void> {
 async function assignLinks(eventId: number, links: string[] = []): Promise<void> {
     const conn = await getConn();
     try {
-        for(const link of links) {
-            const {type, name, source} = JSON.parse(link);
-            await conn.execute('INSERT INTO event_links (id, event_id, link_type, name, link) VALUES (NULL, ?, ?, ?, ?);', [eventId, type, name, source]);
+        for(const eventLink of links) {
+            const {linkType, name, link} = JSON.parse(eventLink);
+            await conn.execute('INSERT INTO event_links (id, event_id, link_type, name, link) VALUES (NULL, ?, ?, ?, ?);', [eventId, linkType, name, link]);
         }
     } catch(err) {
         console.log(err);
