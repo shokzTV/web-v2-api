@@ -16,6 +16,13 @@ export async function getNews(): Promise<News[]> {
     return news;
 }
 
+export async function getLatestNews(): Promise<News[]> {
+    const conn = await getConn();
+    const [news] = await conn.execute<News[]>('SELECT id, headline, description, source, created FROM news ORDER BY id DESC LIMIT 15');
+    await conn.end();
+    return news;
+}
+
 export async function createNews(name: string, description: string = '', source: string = '', userId: number): Promise<number> {
     const conn = await getConn();
     const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO news (id, user_id, headline, description, source, created) VALUE (NULL, ?, ?, ?, ?, NOW());', [userId, name, description, source]);
