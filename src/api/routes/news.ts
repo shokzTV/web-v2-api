@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
-import { getNews, createNews, editNews, deleteNews } from '../../services/news';
+import { getNews, createNews, editNews, deleteNews, getLatestNews } from '../../services/news';
 import { User } from '../../entities/User';
 
 const route = Router();
@@ -10,6 +10,11 @@ export default (app: Router) => {
 
     route.get('/list', async (req: Request, res: Response) => {
         const news = await getNews();
+        return res.json(news).status(200);
+    });
+
+    route.get('/latest', async (req: Request, res: Response) => {
+        const news = await getLatestNews();
         return res.json(news).status(200);
     });
 
