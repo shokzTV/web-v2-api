@@ -36,6 +36,14 @@ export async function getMainEvent(): Promise<DecoratedEvent | undefined> {
     return;
 }
 
+export async function getFeaturedEvents(): Promise<DecoratedEvent[]> {
+    const conn = await getConn();
+    const [eventRows] = await conn.execute<EventRow[]>(`SELECT id FROM event WHERE is_featured = 1;`);
+    const eventIds = eventRows.map(({id}) => id);
+    await conn.end();
+    return eventIds.length === 0 ? [] : await getEvents(eventIds);
+}
+
 export async function getAllEvents(): Promise<DecoratedEvent[]> {
     const conn = await getConn();
 
@@ -55,7 +63,9 @@ export async function getAllEvents(): Promise<DecoratedEvent[]> {
         description_type as descriptionType,
         disclaimer,
         CAST(is_featured AS UNSIGNED) as isFeatured,
-        CAST(is_main_event AS UNSIGNED) as isMainEvent
+        CAST(is_main_event AS UNSIGNED) as isMainEvent,
+        banner,
+        organizer_logo as organizerLogo
       FROM event`);
     const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id`);
     const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links`);
@@ -90,7 +100,9 @@ export async function getEvents(ids: number[]): Promise<DecoratedEvent[]> {
         description_type as descriptionType,
         disclaimer,
         CAST(is_featured AS UNSIGNED) as isFeatured,
-        CAST(is_main_event AS UNSIGNED) as isMainEvent
+        CAST(is_main_event AS UNSIGNED) as isMainEvent,
+        banner,
+        organizer_logo as organizerLogo
       FROM event WHERE id IN (${cond.join(',')})`, ids);
     const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${cond.join(',')})`, ids);
     const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links WHERE event_id IN (${cond.join(',')})`, ids);
