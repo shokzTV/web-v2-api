@@ -44,22 +44,6 @@ export async function getFeaturedEvents(): Promise<DecoratedEvent[]> {
     return eventIds.length === 0 ? [] : await getEvents(eventIds);
 }
 
-export async function getUpcomingEvents(): Promise<DecoratedEvent[]> {
-    const conn = await getConn();
-    const [eventRows] = await conn.execute<EventRow[]>(`SELECT id FROM event WHERE start >= CURRENT_TIMESTAMP();`);
-    const eventIds = eventRows.map(({id}) => id);
-    await conn.end();
-    return eventIds.length === 0 ? [] : await getEvents(eventIds);
-}
-
-export async function getPastEvents(): Promise<DecoratedEvent[]> {
-    const conn = await getConn();
-    const [eventRows] = await conn.execute<EventRow[]>(`SELECT id FROM event WHERE end < CURRENT_TIMESTAMP();`);
-    const eventIds = eventRows.map(({id}) => id);
-    await conn.end();
-    return eventIds.length === 0 ? [] : await getEvents(eventIds);
-}
-
 export async function getAllEvents(): Promise<DecoratedEvent[]> {
     const conn = await getConn();
 
