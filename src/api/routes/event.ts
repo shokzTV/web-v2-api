@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { getMainEvent, getEvents, deleteEvent, changeMainEvent, toggleFeatureEvent, getEventIds, createEvent, upadteEvent, getAllEvents, getFeaturedEvents, getUpcomingEvents, getPastEvents } from '../../services/event';
+import { getMainEvent, getEvents, deleteEvent, changeMainEvent, toggleFeatureEvent, getEventIds, createEvent, upadteEvent, getAllEvents, getFeaturedEvents } from '../../services/event';
 import { getIdsFromRequest, getArrayFromBody } from './helper';
 import { UploadedFile } from 'express-fileupload';
 import { checkUserRole } from '../../middlewares/access';
@@ -22,16 +22,6 @@ export default (app: Router) => {
     route.get('/ids', async (req: Request, res: Response) => {
         const eventIds = await getEventIds();
         return res.json(eventIds).status(200);
-    });
-
-    route.get('/upcoming', async (req: Request, res: Response) => {
-        const events = await getUpcomingEvents();
-        return res.json(events).status(200);
-    });
-
-    route.get('/past', async (req: Request, res: Response) => {
-        const events = await getPastEvents();
-        return res.json(events).status(200);
     });
 
     route.get('/byId', async (req: Request, res: Response) => {
