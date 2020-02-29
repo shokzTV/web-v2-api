@@ -275,3 +275,28 @@ export async function deleteEvent(eventId: number): Promise<void> {
 
     await conn.end();
 }
+
+interface RelationResponse {
+    articles: number[];
+    videos: number[];
+}
+
+interface IdResponse extends RowDataPacket {
+    id: number;
+}
+
+export async function getEventRelations(eventId: number): Promise<RelationResponse> {
+    const conn = await getConn();
+    const [tags] = await conn.execute<IdResponse[]>(`SELECT tag_id as id FROM event_tags WHERE event_id = ?`, [eventId]);
+    const tagIds = tags.map(({id}) => id);
+    const cond = Array(tagIds.length).fill('?');
+    const [articles] = await conn.execute<IdResponse[]>(`SELECT article_id FROM article_tags WHERE tag_id IN (${cond.join(',')})`, tagIds);
+    const [videos] = await conn.execute<IdResponse[]>(`SELECT video_id FROM video_tags WHERE tag_id IN (${cond.join(',')})`, tagIds);
+
+    await conn.end();
+
+    return {
+        articles: articles.map(({id}) => id),
+        videos: videos.map(({id}) => id)
+    };
+}
