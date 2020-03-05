@@ -6,8 +6,8 @@ import { streamFile } from "./File";
 
 type UserResponse = User & RowDataPacket & OkPacket;
 
-async function downloadUserAvatar(url: string, userId: number): Promise<string> {
-    return streamFile('userAvatar', url, '' + userId);
+async function downloadUserAvatar(url: string, userId: number): Promise<[string, string]> {
+    return await streamFile('userAvatar', url, '' + userId);
 }
 
 export async function findOrCreateUser(twitchId: number, displayName: string, avatar: string): Promise<User> {
@@ -15,10 +15,10 @@ export async function findOrCreateUser(twitchId: number, displayName: string, av
     let user = await loadUserByTwitchId(twitchId);
 
     if(! user) {
-        const avatarPath = await downloadUserAvatar(avatar, twitchId);
+        const [webp, jp2] = await downloadUserAvatar(avatar, twitchId);
         conn.execute<OkPacket>(
-            "INSERT INTO user (id, twitch_id, display_name, avatar, profile_url, custom_title) VALUES (NULL, ?, ?, ?,  '', '');",
-            [twitchId, displayName, avatarPath]
+            "INSERT INTO user (id, twitch_id, display_name, avatar_webp, avatar_jpeg_2000, profile_url, custom_title) VALUES (NULL, ?, ?, ?, ?,  '', '');",
+            [twitchId, displayName, webp, jp2]
         );
         const [userRow] = await conn.query<UserResponse[]>('SELECT * FROM user WHERE twitch_id = ?;', [twitchId]);
         user = userRow[0];

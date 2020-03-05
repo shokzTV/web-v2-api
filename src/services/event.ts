@@ -58,14 +58,15 @@ export async function getAllEvents(): Promise<DecoratedEvent[]> {
         country,
         location,
         price_pool as pricePool,
-        banner,
+        banner_webp as banner,
+        banner_jpeg_2000 as bannerJP2,
         description,
         description_type as descriptionType,
         disclaimer,
         CAST(is_featured AS UNSIGNED) as isFeatured,
         CAST(is_main_event AS UNSIGNED) as isMainEvent,
-        banner,
-        organizer_logo as organizerLogo
+        organizer_logo_webp as organizerLogo,
+        organizer_logo_jpeg_2000 as organizerLogoJP2;
       FROM event`);
     const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id`);
     const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links`);
@@ -95,16 +96,17 @@ export async function getEvents(ids: number[]): Promise<DecoratedEvent[]> {
         country,
         location,
         price_pool as pricePool,
-        banner,
+        banner_webp as banner,
+        banner_jpeg_2000 as bannerJP2,
         description,
         description_type as descriptionType,
         disclaimer,
         CAST(is_featured AS UNSIGNED) as isFeatured,
         CAST(is_main_event AS UNSIGNED) as isMainEvent,
-        banner,
-        organizer_logo as organizerLogo
+        organizer_logo_webp as organizerLogo,
+        organizer_logo_jpeg_2000 as organizerLogoJP2
       FROM event WHERE id IN (${cond.join(',')})`, ids);
-    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${cond.join(',')})`, ids);
+    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image_webp as image, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${cond.join(',')})`, ids);
     const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links WHERE event_id IN (${cond.join(',')})`, ids);
     const [organizers] = await conn.execute<OrganizerRow[]>('SELECT * from organizer');
     await conn.end();
@@ -134,19 +136,19 @@ export async function createEvent(
     tags: string[],
     links: string[],
 ): Promise<number> {
-    let bannerPath: string = '', organizerLogoPath: string = '';
+    let banWebp: string = '', banJP2: string = '', orgWebp: string = '', orgJP2: string = '';
     if(banner) {
-        bannerPath = await saveFormFile('banner', name, banner, {height: 200});
+        [banWebp, banJP2] = await saveFormFile('banner', name, banner, {height: 200});
     }
     if(organizerLogo) {
-        organizerLogoPath = await saveFormFile('organizer/eventlogo', name, organizerLogo, {height: 175});
+        [orgWebp, orgJP2] = await saveFormFile('organizer/eventlogo', name, organizerLogo, {height: 175});
     }
 
     const conn = await getConn();
     const [{insertId}] = await conn.execute<OkPacket>(`
-        INSERT INTO event (id, organizer_id, name, description_short, start, end, country, location, price_pool, banner, description, description_type, disclaimer, organizer_logo, is_featured, is_main_event) VALUE 
-        (NULL, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?, ?, ?, b'0', b'0');`, 
-    [organizer, name, descShort, start, end, country, location, price, bannerPath, description, descriptionType, disclaimer, organizerLogoPath]);
+        INSERT INTO event (id, organizer_id, name, description_short, start, end, country, location, price_pool, banner_webp, banner_jpeg_2000, description, description_type, disclaimer, organizer_logo_webp, organizer_logo_jpeg_2000, is_featured, is_main_event) VALUE 
+        (NULL, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, b'0', b'0');`, 
+    [organizer, name, descShort, start, end, country, location, price, banWebp, banJP2, description, descriptionType, disclaimer, orgWebp, orgJP2]);
     await assignTags(insertId, tags);
     await assignLinks(insertId, links);
     await conn.end();

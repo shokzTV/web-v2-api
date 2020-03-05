@@ -78,8 +78,8 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
         params.push(articleIds);
     }
 
-    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author ${condition}`, params);
-    const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id ${condition}`, params);
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover_webp as cover, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar_webp as avatar, u.avatar_jpeg_2000 as avatarJP2, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author ${condition}`, params);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image_webp as image, t.image_jpeg_2000 as imageJP2 FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id ${condition}`, params);
 
     await conn.end();
 
@@ -101,8 +101,8 @@ export async function getPublicArticles(articleIds: number[]): Promise<Article[]
     const conn = await getConn();
     const cond = Array(articleIds.length).fill('?');
 
-    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published' AND a.id IN (${cond.join(',')})`, articleIds);
-    const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id`);
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover_webp as cover, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar_webp as avatar, u.avatar_jpeg_2000 as avatarJP2, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published' AND a.id IN (${cond.join(',')})`, articleIds);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image_webp as image, t.image_jpeg_2000 as imageJP2 FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id`);
     await conn.end();
     return mapRows(articles, tags);
 }
@@ -110,14 +110,14 @@ export async function getPublicArticles(articleIds: number[]): Promise<Article[]
 export async function createDraft(title: string, body: string, tags: string[], userId: number, cover: UploadedFile |  null): Promise<number> {
     const conn = await getConn();
     
-    let imagePath: string= '';
+    let webp: string= '', jp2: string= '';
     if(cover) {
-        imagePath = await saveFormFile('covers', title, cover);
+        [webp, jp2] = await saveFormFile('covers', title, cover);
     }
 
     const [{insertId}] = await conn.execute<OkPacket>(
-        `INSERT INTO article (id,title,author,created,cover,body,status) VALUES (NULL,?,?,NOW(),?,?,?)`,
-        [title, userId, imagePath, body, Status.draft]
+        `INSERT INTO article (id,title,author,created,cover_webp, cover_jpeg_2000,body,status) VALUES (NULL,?,?,NOW(),?,?,?,?)`,
+        [title, userId, webp, jp2, body, Status.draft]
     );
 
     await assignTags(insertId, tags);

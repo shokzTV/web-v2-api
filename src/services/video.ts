@@ -4,7 +4,7 @@ import { OkPacket, RowDataPacket } from "mysql2";
 import { requireTags, Tag } from "./tag";
 import {streamFile} from './File';
 
-async function donwloadThumbnail(url: string): Promise<string> {
+async function donwloadThumbnail(url: string): Promise<[string, string]> {
     const videoData = await fetchVideoByUrl(url);
     return await streamFile('videoThumbs', videoData.preview.large, videoData._id);
 }
@@ -46,8 +46,8 @@ export async function getVideoIds(): Promise<number[]> {
 export async function loadVideosById(ids: number[]): Promise<Video[]> {
     const conn = await getConn();
     const cond = Array(ids.length).fill('?');
-    const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail FROM video v WHERE id IN (${cond.join(',')});`, ids);
-    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image FROM video_tags vt INNER JOIN tag t ON t.id = vt.tag_id`);
+    const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail_webp as thumbnail, v.thumbnail_jpeg_2000 as thumbnailJP2 FROM video v WHERE id IN (${cond.join(',')});`, ids);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image_webp as image, t.image_jpeg_2000 as imageJP2 FROM video_tags vt INNER JOIN tag t ON t.id = vt.tag_id`);
     await conn.end();
 
     return mapRows(videos, tags);
@@ -55,8 +55,8 @@ export async function loadVideosById(ids: number[]): Promise<Video[]> {
 
 export async function listVideos(): Promise<Video[]> {
     const conn = await getConn();
-    const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail FROM video v;`);
-    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image FROM video_tags vt INNER JOIN tag t ON t.id = vt.tag_id`);
+    const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail_webp as thumbnail, v.thumbnail_jpeg_2000 as thumbnailJP2 FROM video v;`);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image_webp as image, t.image_jpeg_2000 as imageJP2 FROM video_tags vt INNER JOIN tag t ON t.id = vt.tag_id`);
     await conn.end();
 
     return mapRows(videos, tags);
@@ -74,12 +74,12 @@ function mapRows(rows: VideoRow[], tags: TagResponse[]): Video[] {
 
 export async function createVideo(title: string, source: string, tags: string[]): Promise<number> {
     const conn = await getConn();
-    const thumbNail = await donwloadThumbnail(source);
+    const [webp, jp2] = await donwloadThumbnail(source);
 
 
     const [{insertId}] = await conn.execute<OkPacket>(
-        `INSERT INTO video (id,title,source,thumbnail,description) VALUES (NULL,?,?,?,?)`,
-        [title, source, thumbNail, '']
+        `INSERT INTO video (id,title,source,thumbnail_webp, thumbnail_jpeg_2000,description) VALUES (NULL,?,?,?,?,?)`,
+        [title, source, webp, jp2, '']
     );
 
     await assignTags(insertId, tags);

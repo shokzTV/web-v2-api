@@ -3,6 +3,8 @@ import fs from 'fs';
 import fetch from 'node-fetch';
 import sharp from 'sharp';
 import { UploadedFile } from 'express-fileupload';
+import imagemagick from 'imagemagick';
+import { resolve } from 'dns';
 
 type FileTypes = 'videoThumbs' | 'tags' | 'covers' | 'userAvatar' | 'organizer/icon' | 'organizer/logo' | 'organizer/eventlogo' | 'banner';
 
@@ -18,7 +20,7 @@ function getFileType(name: string): string {
     return name.substring(name.lastIndexOf('.'));
 }
 
-export async function streamFile(type: FileTypes, url: string, identifier: string, ): Promise<string> {
+export async function streamFile(type: FileTypes, url: string, identifier: string, ): Promise<[string, string]> {
     const relativePath = buildPathWithType('videoThumbs', identifier, url);
     const path = __dirname + `/../..${relativePath}`;
     const res = await fetch(url);
@@ -29,7 +31,18 @@ export async function streamFile(type: FileTypes, url: string, identifier: strin
         fileStream.on('finish', () => resolve());
     });
 
-    return relativePath;
+    const image = sharp(path);
+    const fileHash = relativePath.substring(0, relativePath.lastIndexOf('.'));
+    if(!relativePath.endsWith('.webp')) {
+        await image.webp().toFile(__dirname + '/../..' + fileHash + '.webp');
+    }
+    if(!relativePath.endsWith('.jp2')) {
+        await new Promise((resolve) => {
+            imagemagick.convert([path, '-quality', '0', __dirname + '/../..' + fileHash + '.jp2'], () => resolve());
+        });
+    }
+
+    return [fileHash + '.webp', fileHash + '.jp2'];
 }
 
 interface Dimensions {
@@ -37,15 +50,23 @@ interface Dimensions {
     height?: number;
 }
 
-export async function saveFormFile(type: FileTypes, identifier: string, file: UploadedFile, dimenstions: Dimensions = { width: 512, height: 288 }): Promise<string> {
-    const relativePath = buildPath(type, identifier) + '.png';
+export async function saveFormFile(type: FileTypes, identifier: string, file: UploadedFile, dimenstions: Dimensions = { width: 512, height: 288 }): Promise<[string, string]> {
+    const webPPath = buildPath(type, identifier) + '.webp';
+    const jp2Path = buildPath(type, identifier) + '.jp2';
 
     await sharp(file.data)
-            .png()
+            .webp()
             .resize(dimenstions)
-            .toFile(__dirname + `/../..${relativePath}`);
+            .toFile(__dirname + `/../..${webPPath}`);
 
-    return relativePath;
+
+    await new Promise((resolve) => {
+        imagemagick.convert([__dirname + `/../..${webPPath}`, '-quality', '0', __dirname + `/../..${jp2Path}`], () => {
+            resolve();
+        });
+    });
+
+    return [webPPath, jp2Path];
 }
 
 export async function removeFile(path: string): Promise<void> {
