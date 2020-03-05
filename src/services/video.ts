@@ -68,6 +68,7 @@ function mapRows(rows: VideoRow[], tags: TagResponse[]): Video[] {
         title: v.title,
         source: v.source,
         thumbnail: v.thumbnail,
+        thumbnailWEBP: v.thumbnailWEBP,
         thumbnailJP2: v.thumbnailJP2,
         tags: tags.filter(({video}) => video === v.videoId).map(({id, name, image, imageJP2}) => ({id, name, image, imageJP2})),
     }));
