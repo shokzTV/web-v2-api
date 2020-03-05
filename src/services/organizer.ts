@@ -9,7 +9,7 @@ type EventCountRow = {count: number, organizer: number} & RowDataPacket;
 
 export async function getAllOrganizer(): Promise<Organizer[]> {
     const conn = await getConn();
-    const [organizer] = await conn.execute<OrganizerRow[]>(`SELECT id, name, logo_webp as logo, logo_jpeg_2000 as logoJP2, icon_webp as icon, icon_jpeg_2000 as iconJP2 from organizer`);
+    const [organizer] = await conn.execute<OrganizerRow[]>(`SELECT id, name, logo as logo, logo_webp as logoWEBP, logo_jpeg_2000 as logoJP2, icon as icon, icon_webp as iconWEBP, icon_jpeg_2000 as iconJP2 from organizer`);
     const [events] = await conn.execute<EventCountRow[]>(`SELECT COUNT(id) as count, organizer_id as organizer from event GROUP BY organizer_id`);
     await conn.end();
     return organizer.map((org) => ({
@@ -21,7 +21,7 @@ export async function getAllOrganizer(): Promise<Organizer[]> {
 export async function getOrganizer(ids: number[]): Promise<Organizer[]> {
     const conn = await getConn();
     const cond = Array(ids.length).fill('?');
-    const [organizer] = await conn.execute<OrganizerRow[]>(`SELECT id, name, logo_webp as logo, logo_jpeg_2000 as logoJP2, icon_webp as icon, icon_jpeg_2000 as iconJP2 from organizer WHERE id IN (${cond.join(',')})`, ids);
+    const [organizer] = await conn.execute<OrganizerRow[]>(`SELECT id, name, logo, logo_webp as logoWEBP, logo_jpeg_2000 as logoJP2, icon, icon_webp as iconWEBP, icon_jpeg_2000 as iconJP2 from organizer WHERE id IN (${cond.join(',')})`, ids);
     const [events] = await conn.execute<EventCountRow[]>(`SELECT COUNT(id) as count, organizer_id as organizer from event GROUP BY organizer_id`);
     await conn.end();
     return organizer.map((org) => ({
