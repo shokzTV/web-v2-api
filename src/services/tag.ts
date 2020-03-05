@@ -32,14 +32,14 @@ export async function requireTags(tags: string[] = []): Promise<TagIdMap> {
     return {};
 }
 
-async function saveTagCover(name: string, file: UploadedFile): Promise<string> {
+async function saveTagCover(name: string, file: UploadedFile): Promise<[string, string]> {
     return await saveFormFile('tags', name, file);
 }
 
 export async function getTags(): Promise<Tag[]> {
     const conn = await getConn();
     const [tags] = await conn.execute<Tag[]>(`
-        SELECT t.id, t.name, t.description, t.image, UNIX_TIMESTAMP(a.created) as lastAction
+        SELECT t.id, t.name, t.description, t.image_webp as image, t.image_jpeg_2000 as imageJP2 , UNIX_TIMESTAMP(a.created) as lastAction
           FROM tag t
      LEFT JOIN article_tags at ON at.tag_id = t.id 
      LEFT JOIN article a ON a.id = at.article_id 
@@ -53,11 +53,11 @@ export async function getTags(): Promise<Tag[]> {
 export async function createTag(name: string, description: string = '', image?: UploadedFile): Promise<number> {
     const conn = await getConn();
     
-    let imagePath: string|null= '';
+    let webp: string|null= '', jpeg2000: string|null= '';
     if(image) {
-        imagePath = await saveTagCover(name, image);
+        [webp, jpeg2000] = await saveTagCover(name, image);
     }
-    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image) VALUE (NULL, ?, ?, ?);', [name, description, imagePath]);
+    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image_webp, image_jpeg_2000) VALUE (NULL, ?, ?, ?);', [name, description, webp, jpeg2000]);
     await conn.end();
 
     return insertId;
@@ -74,8 +74,8 @@ export async function patchTag(id: number, name?: string, description?: string, 
     }
 
     if(image) {
-        const imagePath = await saveTagCover(''+id, image);
-        await conn.execute('UPDATE tag SET image=? WHERE id=?', [imagePath, id]);
+        const [webp, jpeg2000] = await saveTagCover(''+id, image);
+        await conn.execute('UPDATE tag SET image_webp=?, image_jpeg_2000=? WHERE id=?', [webp, jpeg2000, id]);
     }
 
     await conn.end();
