@@ -46,8 +46,8 @@ export async function getVideoIds(): Promise<number[]> {
 export async function loadVideosById(ids: number[]): Promise<Video[]> {
     const conn = await getConn();
     const cond = Array(ids.length).fill('?');
-    const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail_webp as thumbnail, v.thumbnail_jpeg_2000 as thumbnailJP2 FROM video v WHERE id IN (${cond.join(',')});`, ids);
-    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image_webp as image, t.image_jpeg_2000 as imageJP2 FROM video_tags vt INNER JOIN tag t ON t.id = vt.tag_id`);
+    const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail as thumbnail, v.thumbnail_webp as thumbnailWEBP, v.thumbnail_jpeg_2000 as thumbnailJP2 FROM video v WHERE id IN (${cond.join(',')});`, ids);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM video_tags vt INNER JOIN tag t ON t.id = vt.tag_id`);
     await conn.end();
 
     return mapRows(videos, tags);
@@ -55,8 +55,8 @@ export async function loadVideosById(ids: number[]): Promise<Video[]> {
 
 export async function listVideos(): Promise<Video[]> {
     const conn = await getConn();
-    const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail_webp as thumbnail, v.thumbnail_jpeg_2000 as thumbnailJP2 FROM video v;`);
-    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image_webp as image, t.image_jpeg_2000 as imageJP2 FROM video_tags vt INNER JOIN tag t ON t.id = vt.tag_id`);
+    const [videos] = await conn.execute<VideoRow[]>(`SELECT v.id as videoId, v.title, v.source, v.thumbnail as thumbnail, v.thumbnail_webp as thumbnailWEBP, v.thumbnail_jpeg_2000 as thumbnailJP2 FROM video v;`);
+    const [tags] = await conn.execute<TagResponse[]>(`SELECT vt.video_id as video, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM video_tags vt INNER JOIN tag t ON t.id = vt.tag_id`);
     await conn.end();
 
     return mapRows(videos, tags);

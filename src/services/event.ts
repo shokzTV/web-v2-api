@@ -58,17 +58,19 @@ export async function getAllEvents(): Promise<DecoratedEvent[]> {
         country,
         location,
         price_pool as pricePool,
-        banner_webp as banner,
+        banner as banner,
+        banner_webp as bannerWEBP,
         banner_jpeg_2000 as bannerJP2,
         description,
         description_type as descriptionType,
         disclaimer,
         CAST(is_featured AS UNSIGNED) as isFeatured,
         CAST(is_main_event AS UNSIGNED) as isMainEvent,
-        organizer_logo_webp as organizerLogo,
+        organizer_logo as organizerLogo,
+        organizer_logo_webp as organizerLogoWEBP,
         organizer_logo_jpeg_2000 as organizerLogoJP2;
       FROM event`);
-    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image_webp as image, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id`);
+    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.imager as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id`);
     const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links`);
     const [organizers] = await conn.execute<OrganizerRow[]>('SELECT * from organizer');
     await conn.end();
@@ -96,17 +98,19 @@ export async function getEvents(ids: number[]): Promise<DecoratedEvent[]> {
         country,
         location,
         price_pool as pricePool,
-        banner_webp as banner,
+        banner as banner,
+        banner_webp as bannerWEBP,
         banner_jpeg_2000 as bannerJP2,
         description,
         description_type as descriptionType,
         disclaimer,
         CAST(is_featured AS UNSIGNED) as isFeatured,
         CAST(is_main_event AS UNSIGNED) as isMainEvent,
-        organizer_logo_webp as organizerLogo,
+        organizer_logo as organizerLogo,
+        organizer_logo_webp as organizerLogoWEBP,
         organizer_logo_jpeg_2000 as organizerLogoJP2
       FROM event WHERE id IN (${cond.join(',')})`, ids);
-    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image_webp as image, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${cond.join(',')})`, ids);
+    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${cond.join(',')})`, ids);
     const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links WHERE event_id IN (${cond.join(',')})`, ids);
     const [organizers] = await conn.execute<OrganizerRow[]>('SELECT * from organizer');
     await conn.end();

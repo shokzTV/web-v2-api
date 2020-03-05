@@ -17,7 +17,7 @@ export async function findOrCreateUser(twitchId: number, displayName: string, av
     if(! user) {
         const [webp, jp2] = await downloadUserAvatar(avatar, twitchId);
         conn.execute<OkPacket>(
-            "INSERT INTO user (id, twitch_id, display_name, avatar_webp, avatar_jpeg_2000, profile_url, custom_title) VALUES (NULL, ?, ?, ?, ?,  '', '');",
+            "INSERT INTO user (id, twitch_id, display_name, avatar, avatar_webp as avatarWEBP, avatar_jpeg_2000 as avatarJP2, profile_url, custom_title) VALUES (NULL, ?, ?, ?, ?,  '', '');",
             [twitchId, displayName, webp, jp2]
         );
         const [userRow] = await conn.query<UserResponse[]>('SELECT * FROM user WHERE twitch_id = ?;', [twitchId]);
