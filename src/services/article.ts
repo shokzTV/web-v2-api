@@ -55,6 +55,7 @@ function mapRows(rows: ArticleRow[], tags: TagResponse[]): Article[] {
         title: a.title,
         body: a.body,
         cover: a.cover,
+        coverJP2: a.coverJP2,
         status: a.status,
         created: a.created,
         author: {
@@ -64,7 +65,7 @@ function mapRows(rows: ArticleRow[], tags: TagResponse[]): Article[] {
             avatar: a.avatar,
             title: a.custom_title
         },
-        tags: tags.filter(({article}) => article === a.articleId).map(({id, name, image}) => ({id, name, image})),
+        tags: tags.filter(({article}) => article === a.articleId).map(({id, name, image, imageJP2}) => ({id, name, image, imageJP2})),
     }));
 } 
 
