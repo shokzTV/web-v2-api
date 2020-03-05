@@ -10,7 +10,9 @@ export default async ({ app, passport }: { app: express.Application; passport: P
     app.use(cors());
     app.use(fileUpload());
 
-    app.use('/static', express.static('static'));
+    app.use('/static', express.static('static', {
+        maxAge: '31536000'
+    }));
 
     /** health check endpoints */
     app.get('/status', (req, res) => res.status(200).end());
