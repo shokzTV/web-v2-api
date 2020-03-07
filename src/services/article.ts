@@ -104,7 +104,7 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
     const articles = await getArticles(articleIds.map(({id}) => id));
 
     return articles.map((article, index) => {
-        if(index === 0) {
+        if(index === 3) {
             return  {
                 id: article.id,
                 title: article.title,
