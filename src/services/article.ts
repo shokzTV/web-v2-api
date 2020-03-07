@@ -77,11 +77,11 @@ function mapRows(rows: ArticleRow[], tags: TagResponse[]): Article[] {
 export async function getArticles(articleIds: number[] = []): Promise<Article[]> {
     const conn = await getConn();
     let condition = '';
-    const params = [];
+    let params: number[] = [];
 
     if(articleIds.length) {
-        condition = 'WHERE id IN (:ids)';
-        params.push(articleIds);
+        condition = `WHERE a.id IN (${Array(articleIds.length).fill('?')})`;
+        params = articleIds;
     }
 
     const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover as cover, a.cover_webp as coverWEBP, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar as avatar, u.avatar_webp as avatarWEBP, u.avatar_jpeg_2000 as avatarJP2, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author ${condition}`, params);
