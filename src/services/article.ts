@@ -20,6 +20,8 @@ interface Article {
         image?: string;
     }>;
     cover: string;
+    coverWEBP: string;
+    coverJP2: string;
     status: Status;
     author: {
         id: number,
@@ -92,6 +94,34 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
 
 interface IdsRowPacket extends RowDataPacket {
     id: number;
+}
+
+export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
+    const conn = await getConn();
+    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published" ORDER BY created DESC LIMIT 4;');
+    await conn.end();
+    const articles = await getArticles(articleIds.map(({id}) => id));
+
+    return articles.map((article, index) => {
+        if(index === 0) {
+            return  {
+                id: article.id,
+                title: article.title,
+                body: article.body,
+                cover: article.cover,
+                coverWEBP: article.coverWEBP,
+                coverJP2: article.coverJP2,
+            }
+        }
+
+        return {
+            id: article.id,
+            title: article.title,
+            cover: article.cover,
+            coverWEBP: article.coverWEBP,
+            coverJP2: article.coverJP2,
+        }
+    })
 }
 
 export async function getPublicArticlesIds(): Promise<number[]> {
