@@ -17,7 +17,7 @@ type TagResponse = Tag  & RowDataPacket & {
 
 export async function getEventIds(): Promise<number[]> {
     const conn = await getConn();
-    const [eventRows] = await conn.execute<EventRow[]>(`SELECT id FROM event ORDER by end DESC`);
+    const [eventRows] = await conn.execute<EventRow[]>(`SELECT id FROM event WHERE is_featured = 0 ORDER by end DESC`);
     await conn.end();
     return eventRows.map(({id}) => id);
 }
