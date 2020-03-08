@@ -37,7 +37,7 @@ interface IdsRowPacket extends RowDataPacket {
 
 export async function getLatestVideos(): Promise<Video[]> {
     const conn = await getConn();
-    const [videos] = await conn.execute<DefaultVideoRow[]>('SELECT id, source, thumbnail, thumbnail_webp as thumbnailWEBP, thumbnail_jpeg_2000 as thumbnailJP2 FROM video ORDER BY id DESC;');
+    const [videos] = await conn.execute<DefaultVideoRow[]>('SELECT id, source, thumbnail, thumbnail_webp as thumbnailWEBP, thumbnail_jpeg_2000 as thumbnailJP2 FROM video ORDER BY id DESC LIMIT 10;');
     await conn.end();
 
     return videos;
