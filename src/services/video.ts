@@ -25,15 +25,22 @@ interface Video {
     title: string;
     source: string;
     thumbnail: string;
-    tags: Array<{
-        id: number;
-        name: string;
-        image?: string;
-    }>;
+    thumbnailWEBP: string;
+    thumbnailJP2: string;
 }
+
+type DefaultVideoRow = Video & RowDataPacket;
 
 interface IdsRowPacket extends RowDataPacket {
     id: number;
+}
+
+export async function getLatestVideos(): Promise<Video[]> {
+    const conn = await getConn();
+    const [videos] = await conn.execute<DefaultVideoRow[]>('SELECT id, source, thumbnail, thumbnail_webp as thumbnailWEBP, thumbnail_jpeg_2000 as thumbnailJP2 FROM video ORDER BY id DESC;');
+    await conn.end();
+
+    return videos;
 }
 
 export async function getVideoIds(): Promise<number[]> {

@@ -1,12 +1,17 @@
 import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
-import { createVideo, patchVideo, deleteVideo, listVideos, getVideoIds, loadVideosById } from '../../services/video';
+import { createVideo, patchVideo, deleteVideo, listVideos, getVideoIds, loadVideosById, getLatestVideos } from '../../services/video';
 import { getArrayFromBody, getIdsFromRequest } from './helper';
 
 const route = Router();
 
 export default (app: Router) => {
     app.use('/video', route);
+
+    route.get('/latest', async (req: Request, res: Response) => {
+        const videos = await getLatestVideos();
+        return res.json(videos).status(200);
+    });
 
     route.get('/ids', async (req: Request, res: Response) => {
         const videos = await getVideoIds();
