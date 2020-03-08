@@ -50,6 +50,21 @@ export async function getTags(): Promise<Tag[]> {
     return tags;
 }
 
+export async function getRecentTags(): Promise<Tag[]> {
+    const conn = await getConn();
+    const [tags] = await conn.execute<[]>(`
+        SELECT t.id, t.name, t.description, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2, a.created as date
+          FROM tag t
+     LEFT JOIN article_tags at ON at.tag_id = t.id
+     LEFT JOIN article a ON a.id = at.article_id
+      GROUP BY t.id 
+      ORDER BY date DESC  
+       LIMIT 8
+    `);
+    await conn.end();
+    return tags;
+}
+
 export async function createTag(name: string, description: string = '', image?: UploadedFile): Promise<number> {
     const conn = await getConn();
     
