@@ -19,7 +19,7 @@ export default (app: Router) => {
         return res.json(events).status(200);
     });
 
-    route.get('/ids', async (req: Request, res: Response) => {
+    route.get('/pastIds', async (req: Request, res: Response) => {
         const eventIds = await getEventIds();
         return res.json(eventIds).status(200);
     });
