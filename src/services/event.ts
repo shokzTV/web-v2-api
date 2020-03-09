@@ -6,6 +6,8 @@ import { Organizer } from "../entities/Organizer";
 import { removeFile, saveFormFile } from "./File";
 import { UploadedFile } from "express-fileupload";
 import { requireTags } from './tag';
+import { getArticles } from "./article";
+import { loadVideosById, Video } from "./video";
 
 type EventRow = Event & RowDataPacket;
 type EventLinkRow = EventLink & RowDataPacket;
@@ -283,8 +285,14 @@ export async function deleteEvent(eventId: number): Promise<void> {
 }
 
 interface RelationResponse {
-    articles: number[];
-    videos: number[];
+    articles: Array<{
+        id: number;
+        title: string;
+        cover: string;
+        coverWEBP: string;
+        coverJP2: string;
+    }>;
+    videos: Video[];
 }
 
 interface IdResponse extends RowDataPacket {
@@ -296,13 +304,22 @@ export async function getEventRelations(eventId: number): Promise<RelationRespon
     const [tags] = await conn.execute<IdResponse[]>(`SELECT tag_id as id FROM event_tags WHERE event_id = ?`, [eventId]);
     const tagIds = tags.map(({id}) => id);
     const cond = Array(tagIds.length).fill('?');
-    const [articles] = await conn.execute<IdResponse[]>(`SELECT article_id as id FROM article_tags WHERE tag_id IN (${cond.join(',')})`, tagIds);
-    const [videos] = await conn.execute<IdResponse[]>(`SELECT video_id as id FROM video_tags WHERE tag_id IN (${cond.join(',')})`, tagIds);
+    const [articleRows] = await conn.execute<IdResponse[]>(`SELECT article_id as id FROM article_tags WHERE tag_id IN (${cond.join(',')})`, tagIds);
+    const [videoRows] = await conn.execute<IdResponse[]>(`SELECT video_id as id FROM video_tags WHERE tag_id IN (${cond.join(',')})`, tagIds);
 
     await conn.end();
 
+    const articles = await getArticles(articleRows.map(({id}) => id));
+    const videos = await loadVideosById(videoRows.map(({id}) => id));
+
     return {
-        articles: articles.map(({id}) => id),
-        videos: videos.map(({id}) => id)
+        videos,
+        articles: articles.map((article) => ({
+            id: article.id,
+            title: article.title,
+            cover: article.cover,
+            coverWEBP: article.coverWEBP,
+            coverJP2: article.coverJP2,
+        }))
     };
 }

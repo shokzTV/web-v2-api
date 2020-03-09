@@ -20,7 +20,7 @@ interface TagResponse extends Tag {
     video: number;
 }
 
-interface Video {
+export interface Video {
     id: number;
     title: string;
     source: string;
