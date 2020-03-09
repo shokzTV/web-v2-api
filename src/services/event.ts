@@ -309,8 +309,8 @@ export async function getEventRelations(eventId: number): Promise<RelationRespon
 
     await conn.end();
 
-    const articles = await getArticles(articleRows.map(({id}) => id));
-    const videos = await loadVideosById(videoRows.map(({id}) => id));
+    const articles = articleRows.length > 0 ? await getArticles(articleRows.map(({id}) => id)) : [];
+    const videos = videoRows.length > 0 ?  await loadVideosById(videoRows.map(({id}) => id)) : [];
 
     return {
         videos,
