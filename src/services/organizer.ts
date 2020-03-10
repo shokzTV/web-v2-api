@@ -33,16 +33,16 @@ export async function getOrganizer(ids: number[]): Promise<Organizer[]> {
 export async function createOrganizer(name: string, description: string, icon: UploadedFile | null, logo: UploadedFile | null): Promise<number> {
     const conn = await getConn();
     
-    let iWebp: string= '', iJP2: string = '', logoWebp: string= '', logoJP2: string = '';
+    let ic: string = '', iWebp: string= '', iJP2: string = '', log: string = '', logoWebp: string= '', logoJP2: string = '';
     if(icon) {
-        [iWebp, iJP2] = await saveFormFile('organizer/icon', name, icon, {height: 45});
+        [ic, iWebp, iJP2] = await saveFormFile('organizer/icon', name, icon, {height: 45}, true);
     }
 
     if(logo) {
-        [logoWebp, logoJP2] = await saveFormFile('organizer/logo', name, logo, {height: 175});
+        [log, logoWebp, logoJP2] = await saveFormFile('organizer/logo', name, logo, {height: 175}, true);
     }
 
-    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO organizer (id, name, description, icon_webp, icon_jpeg_2000, logo_webp, logo_jpeg_2000) VALUE (NULL, ?, ?, ?, ?, ?, ?);', [name, description, iWebp, iJP2, logoWebp, logoJP2]);
+    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO organizer (id, name, description, icon, icon_webp, icon_jpeg_2000, logo, logo_webp, logo_jpeg_2000) VALUE (NULL, ?, ?, ?, ?, ?, ?, ?, ?);', [name, description, ic, iWebp, iJP2, log, logoWebp, logoJP2]);
     await conn.end();
     return insertId;
 }
@@ -59,23 +59,25 @@ export async function updateOrganizer(organizerId: number, name?: string, descri
         await conn.execute('UPDATE organizer SET name = ? WHERE id = ?;', [name, organizerId]);
     }
     if(icon) {
-        const [webp, jp2] = await saveFormFile('organizer/icon', oldName, icon, {height: 45});
-        await conn.execute('UPDATE organizer SET icon_webp = ?, icon_jpeg_2000 WHERE id = ?;', [webp, jp2, organizerId]);
+        const [webp, jp2, orig] = await saveFormFile('organizer/icon', oldName, icon, {height: 45}, true);
+        await conn.execute('UPDATE organizer SET icon = ?, icon_webp = ?, icon_jpeg_2000 WHERE id = ?;', [orig, webp, jp2, organizerId]);
     }
     if(logo) {
-        const [webp, jp2] = await saveFormFile('organizer/logo', oldName, logo, {height: 175});
-        await conn.execute('UPDATE organizer SET logo_webp = ?, logo_jpeg_2000 = ? WHERE id = ?;', [webp, jp2, organizerId]);
+        const [webp, jp2, orig] = await saveFormFile('organizer/logo', oldName, logo, {height: 175}, true);
+        await conn.execute('UPDATE organizer SET logo = ?, logo_webp = ?, logo_jpeg_2000 = ? WHERE id = ?;', [orig, webp, jp2, organizerId]);
     }
     await conn.end();
 }
 
 export async function deleteOrganizer(organizerId: number): Promise<void> {
     const conn = await getConn();
-    const [oldRows] = (await conn.execute<OrganizerRow[]>(`SELECT icon_webp, icon_jpeg_2000, logo_webp, logo_jpeg_2000 from organizer WHERE id = ?`, [organizerId]));
+    const [oldRows] = (await conn.execute<OrganizerRow[]>(`SELECT icoon, icon_webp, icon_jpeg_2000, logo, logo_webp, logo_jpeg_2000 from organizer WHERE id = ?`, [organizerId]));
     const oldRow = oldRows[0];
 
+    oldRow.icon.length > 0 && removeFile(oldRow.icon);
     oldRow.icon_webp.length > 0 && removeFile(oldRow.icon_webp);
     oldRow.icon_jpeg_2000.length > 0 && removeFile(oldRow.icon_jpeg_2000);
+    oldRow.logo.length > 0 && removeFile(oldRow.logo);
     oldRow.logo_webp.length > 0 && removeFile(oldRow.logo_webp);
     oldRow.logo_jpeg_2000.length > 0 && removeFile(oldRow.logo_jpeg_2000);
     
