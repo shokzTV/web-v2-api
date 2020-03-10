@@ -4,7 +4,6 @@ import fetch from 'node-fetch';
 import sharp from 'sharp';
 import { UploadedFile } from 'express-fileupload';
 import imagemagick from 'imagemagick';
-import { resolve } from 'dns';
 
 type FileTypes = 'videoThumbs' | 'tags' | 'covers' | 'userAvatar' | 'organizer/icon' | 'organizer/logo' | 'organizer/eventlogo' | 'banner';
 
@@ -20,7 +19,7 @@ function getFileType(name: string): string {
     return name.substring(name.lastIndexOf('.'));
 }
 
-export async function streamFile(type: FileTypes, url: string, identifier: string, ): Promise<[string, string]> {
+export async function streamFile(type: FileTypes, url: string, identifier: string, ): Promise<[string, string, string]> {
     const relativePath = buildPathWithType('videoThumbs', identifier, url);
     const path = __dirname + `/../..${relativePath}`;
     const res = await fetch(url);
@@ -42,7 +41,7 @@ export async function streamFile(type: FileTypes, url: string, identifier: strin
         });
     }
 
-    return [fileHash + '.webp', fileHash + '.jp2'];
+    return [fileHash + '.webp', fileHash + '.jp2', fileHash + '.jpeg'];
 }
 
 interface Dimensions {
@@ -50,14 +49,27 @@ interface Dimensions {
     height?: number;
 }
 
-export async function saveFormFile(type: FileTypes, identifier: string, file: UploadedFile, dimenstions: Dimensions = { width: 512, height: 288 }): Promise<[string, string]> {
+export async function saveFormFile(type: FileTypes, identifier: string, file: UploadedFile, dimenstions: Dimensions = { width: 512, height: 288 }, transparency = false): Promise<[string, string, string]> {
     const webPPath = buildPath(type, identifier) + '.webp';
     const jp2Path = buildPath(type, identifier) + '.jp2';
+    const jpegPath = buildPath(type, identifier) + (transparency ? '.png' : '.jpeg');
 
     await sharp(file.data)
             .webp()
             .resize(dimenstions)
             .toFile(__dirname + `/../..${webPPath}`);
+
+    if(transparency) {
+        await sharp(file.data)
+                .png()
+                .resize(dimenstions)
+                .toFile(__dirname + `/../..${jpegPath}`);
+    } else {
+        await sharp(file.data)
+                .jpeg()
+                .resize(dimenstions)
+                .toFile(__dirname + `/../..${jpegPath}`);
+    }
 
 
     await new Promise((resolve) => {
@@ -66,7 +78,7 @@ export async function saveFormFile(type: FileTypes, identifier: string, file: Up
         });
     });
 
-    return [webPPath, jp2Path];
+    return [webPPath, jp2Path, jpegPath];
 }
 
 export async function removeFile(path: string): Promise<void> {

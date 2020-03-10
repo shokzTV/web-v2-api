@@ -21,7 +21,7 @@ export async function requireTags(tags: string[] = []): Promise<TagIdMap> {
         const unknownTags = tags.filter((tag) => !knownNames.includes(tag));
     
         for(const unknwonTag of unknownTags) {
-            const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image) VALUES (NULL, ?, "", "")', [unknwonTag]);
+            const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image, image_webp, image_jpeg_2000) VALUES (NULL, ?, "", "", "", "")', [unknwonTag]);
             mappedTags[unknwonTag] = insertId;
         }
     
@@ -32,7 +32,7 @@ export async function requireTags(tags: string[] = []): Promise<TagIdMap> {
     return {};
 }
 
-async function saveTagCover(name: string, file: UploadedFile): Promise<[string, string]> {
+async function saveTagCover(name: string, file: UploadedFile): Promise<[string, string, string]> {
     return await saveFormFile('tags', name, file);
 }
 
@@ -68,11 +68,11 @@ export async function getRecentTags(): Promise<Tag[]> {
 export async function createTag(name: string, description: string = '', image?: UploadedFile): Promise<number> {
     const conn = await getConn();
     
-    let webp: string|null= '', jpeg2000: string|null= '';
+    let webp: string|null= '', jpeg2000: string|null= '', orig: string|null = '';
     if(image) {
-        [webp, jpeg2000] = await saveTagCover(name, image);
+        [webp, jpeg2000, orig] = await saveTagCover(name, image);
     }
-    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image_webp, image_jpeg_2000) VALUE (NULL, ?, ?, ?);', [name, description, webp, jpeg2000]);
+    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image, image_webp, image_jpeg_2000) VALUE (NULL, ?, ?, ?, ?, ?);', [name, description, orig, webp, jpeg2000]);
     await conn.end();
 
     return insertId;
@@ -89,8 +89,8 @@ export async function patchTag(id: number, name?: string, description?: string, 
     }
 
     if(image) {
-        const [webp, jpeg2000] = await saveTagCover(''+id, image);
-        await conn.execute('UPDATE tag SET image_webp=?, image_jpeg_2000=? WHERE id=?', [webp, jpeg2000, id]);
+        const [webp, jpeg2000, orig] = await saveTagCover(''+id, image);
+        await conn.execute('UPDATE tag SET image=?, image_webp=?, image_jpeg_2000=? WHERE id=?', [orig, webp, jpeg2000, id]);
     }
 
     await conn.end();

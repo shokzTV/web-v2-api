@@ -142,19 +142,19 @@ export async function createEvent(
     tags: string[],
     links: string[],
 ): Promise<number> {
-    let banWebp: string = '', banJP2: string = '', orgWebp: string = '', orgJP2: string = '';
+    let ban: string = '', banWebp: string = '', banJP2: string = '', org: string = '', orgWebp: string = '', orgJP2: string = '';
     if(banner) {
-        [banWebp, banJP2] = await saveFormFile('banner', name, banner, {height: 200});
+        [banWebp, banJP2, ban] = await saveFormFile('banner', name, banner, {height: 200});
     }
     if(organizerLogo) {
-        [orgWebp, orgJP2] = await saveFormFile('organizer/eventlogo', name, organizerLogo, {height: 175});
+        [orgWebp, orgJP2, org] = await saveFormFile('organizer/eventlogo', name, organizerLogo, {height: 175}, true);
     }
 
     const conn = await getConn();
     const [{insertId}] = await conn.execute<OkPacket>(`
-        INSERT INTO event (id, organizer_id, name, description_short, start, end, country, location, price_pool, banner_webp, banner_jpeg_2000, description, description_type, disclaimer, organizer_logo_webp, organizer_logo_jpeg_2000, is_featured, is_main_event) VALUE 
-        (NULL, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, b'0', b'0');`, 
-    [organizer, name, descShort, start, end, country, location, price, banWebp, banJP2, description, descriptionType, disclaimer, orgWebp, orgJP2]);
+        INSERT INTO event (id, organizer_id, name, description_short, start, end, country, location, price_pool, banner, banner_webp, banner_jpeg_2000, description, description_type, disclaimer, organizer_logo, organizer_logo_webp, organizer_logo_jpeg_2000, is_featured, is_main_event) VALUE 
+        (NULL, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, b'0', b'0');`, 
+    [organizer, name, descShort, start, end, country, location, price, ban, banWebp, banJP2, description, descriptionType, disclaimer, org, orgWebp, orgJP2]);
     await assignTags(insertId, tags);
     await assignLinks(insertId, links);
     await conn.end();

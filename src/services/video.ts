@@ -4,7 +4,7 @@ import { OkPacket, RowDataPacket } from "mysql2";
 import { requireTags, Tag } from "./tag";
 import {streamFile} from './File';
 
-async function donwloadThumbnail(url: string): Promise<[string, string]> {
+async function donwloadThumbnail(url: string): Promise<[string, string, string]> {
     const videoData = await fetchVideoByUrl(url);
     return await streamFile('videoThumbs', videoData.preview.large, videoData._id);
 }
@@ -83,12 +83,12 @@ function mapRows(rows: VideoRow[], tags: TagResponse[]): Video[] {
 
 export async function createVideo(title: string, source: string, tags: string[]): Promise<number> {
     const conn = await getConn();
-    const [webp, jp2] = await donwloadThumbnail(source);
+    const [webp, jp2, orig] = await donwloadThumbnail(source);
 
 
     const [{insertId}] = await conn.execute<OkPacket>(
-        `INSERT INTO video (id,title,source,thumbnail_webp, thumbnail_jpeg_2000,description) VALUES (NULL,?,?,?,?,?)`,
-        [title, source, webp, jp2, '']
+        `INSERT INTO video (id,title,source,thumbnail,thumbnail_webp,thumbnail_jpeg_2000,description) VALUES (NULL,?,?,?,?,?,?)`,
+        [title, source, orig, webp, jp2, '']
     );
 
     await assignTags(insertId, tags);

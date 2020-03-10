@@ -145,14 +145,14 @@ export async function getPublicArticles(articleIds: number[]): Promise<Article[]
 export async function createDraft(title: string, body: string, tags: string[], userId: number, cover: UploadedFile |  null): Promise<number> {
     const conn = await getConn();
     
-    let webp: string= '', jp2: string= '';
+    let jpeg: string = '', webp: string= '', jp2: string= '';
     if(cover) {
-        [webp, jp2] = await saveFormFile('covers', title, cover);
+        [webp, jp2, jpeg] = await saveFormFile('covers', title, cover);
     }
 
     const [{insertId}] = await conn.execute<OkPacket>(
-        `INSERT INTO article (id,title,author,created,cover_webp, cover_jpeg_2000,body,status) VALUES (NULL,?,?,NOW(),?,?,?,?)`,
-        [title, userId, webp, jp2, body, Status.draft]
+        `INSERT INTO article (id,title,author,created,cover,cover_webp,cover_jpeg_2000,body,status) VALUES (NULL,?,?,NOW(),?,?,?,?,?)`,
+        [title, userId, jpeg, webp, jp2, body, Status.draft]
     );
 
     await assignTags(insertId, tags);
