@@ -62,5 +62,5 @@ export async function getUserRoleRights(userId: number): Promise<RoleResult[]> {
     const conn = await getConn();
     const [roleIds] = await conn.query<(number & RowDataPacket & OkPacket)[]>('SELECT role_id as id FROM user_roles WHERE user_id = ?', [userId]);
     await conn.end();
-    return await getRoles(roleIds.map(({id}) => id));
+    return roleIds.length > 0 ? await getRoles(roleIds.map(({id}) => id)) : [];
 } 
