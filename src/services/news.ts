@@ -18,7 +18,7 @@ export async function getNews(): Promise<News[]> {
 
 export async function getLatestNews(): Promise<News[]> {
     const conn = await getConn();
-    const [news] = await conn.execute<News[]>('SELECT id, headline, description, source, created FROM news ORDER BY id DESC LIMIT 15');
+    const [news] = await conn.execute<News[]>('SELECT id, headline, description, source, created FROM news ORDER BY id DESC LIMIT 10');
     await conn.end();
     return news;
 }
