@@ -106,6 +106,16 @@ export async function getTagRelations(tagId: number): Promise<Params> {
     };
 }
 
+interface IdsRowPacket extends RowDataPacket {
+    id: number;
+}
+
+export async function getTagIds(): Promise<number[]> {
+    const conn = await getConn();
+    const [tags] = await conn.execute<IdsRowPacket[]>(`SELECT id from tag`);
+    await conn.end();
+    return tags.map(({id}) => id);
+}
 export async function getRecentTags(): Promise<Tag[]> {
     const conn = await getConn();
     const [tags] = await conn.execute<Tag[]>(`
