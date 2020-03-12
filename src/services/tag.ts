@@ -13,6 +13,8 @@ export interface Tag extends RowDataPacket {
     id: number;
     name: string;
     image?: string;
+    imageWEBP?: string;
+    imageJP2?: string;
 }
 
 export async function requireTags(tags: string[] = []): Promise<TagIdMap> {
@@ -106,8 +108,8 @@ export async function getTagRelations(tagId: number): Promise<Params> {
 
 export async function getRecentTags(): Promise<Tag[]> {
     const conn = await getConn();
-    const [tags] = await conn.execute<[]>(`
-        SELECT t.id, t.name, t.description, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2, a.created as date
+    const [tags] = await conn.execute<Tag[]>(`
+        SELECT t.id, t.name, t.description, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2, UNIX_TIMESTAMP(a.created) as date
           FROM tag t
      LEFT JOIN article_tags at ON at.tag_id = t.id
      LEFT JOIN article a ON a.id = at.article_id
