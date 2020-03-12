@@ -2,6 +2,10 @@ import { getConn } from "../db";
 import { RowDataPacket, OkPacket } from "mysql2";
 import { UploadedFile } from "express-fileupload";
 import { saveFormFile } from "./File";
+import { getArticles } from "./article";
+import { loadVideosById, Video } from "./video";
+import { getEvents } from "./event";
+import { DecoratedEvent } from "../entities/Event";
 
 type TagIdMap = {[x: string]: number};
 
@@ -48,6 +52,56 @@ export async function getTags(): Promise<Tag[]> {
     );
     await conn.end();
     return tags;
+}
+
+export async function getTag(tagId: number): Promise<Tag> {
+    const conn = await getConn();
+    const [tags] = await conn.execute<Tag[]>(
+        `SELECT id, name, description, image as image, image_webp as imageWEBP, image_jpeg_2000 as imageJP2 FROM tag WHERE id ?`,
+        [tagId]
+    );
+    await conn.end();
+    return tags[0];
+}
+
+interface IdResponse extends RowDataPacket {
+    id: number;
+}
+
+interface Params {
+    event: DecoratedEvent[];
+    articles: Array<{
+        id: number;
+        title: string;
+        cover: string;
+        coverWEBP: string;
+        coverJP2: string;
+    }>;
+    videos: Video[];
+}
+
+export async function getTagRelations(tagId: number): Promise<Params> {
+    const conn = await getConn();
+    const [eventRows] = await conn.execute<IdResponse[]>(`SELECT event_id as id FROM event_tags WHERE tag_id = ?)`, [tagId]);
+    const [articleRows] = await conn.execute<IdResponse[]>(`SELECT article_id as id FROM article_tags WHERE tag_id = ?)`, [tagId]);
+    const [videoRows] = await conn.execute<IdResponse[]>(`SELECT video_id as id FROM video_tags WHERE tag_id = ?`, [tagId]);
+    await conn.end();
+
+    const event = eventRows.length > 0 ? await getEvents(eventRows.map(({id}) => id)) : [];
+    const articles = articleRows.length > 0 ? await getArticles(articleRows.map(({id}) => id)) : [];
+    const videos = videoRows.length > 0 ?  await loadVideosById(videoRows.map(({id}) => id)) : [];
+
+    return {
+        event,
+        videos,
+        articles: articles.map((article) => ({
+            id: article.id,
+            title: article.title,
+            cover: article.cover,
+            coverWEBP: article.coverWEBP,
+            coverJP2: article.coverJP2,
+        }))
+    };
 }
 
 export async function getRecentTags(): Promise<Tag[]> {
