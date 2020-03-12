@@ -23,7 +23,7 @@ export default (app: Router) => {
         return res.json(tags).status(200);
     });
 
-    route.get('/:tagId', async (req: Request, res: Response) => {
+    route.get('/info/:tagId', async (req: Request, res: Response) => {
         const tags = await getTag(+req.params.tagId);
         return res.json(tags).status(200);
     });
