@@ -57,7 +57,7 @@ export async function getTags(): Promise<Tag[]> {
 export async function getTag(tagId: number): Promise<Tag> {
     const conn = await getConn();
     const [tags] = await conn.execute<Tag[]>(
-        `SELECT id, name, description, image as image, image_webp as imageWEBP, image_jpeg_2000 as imageJP2 FROM tag WHERE id ?`,
+        `SELECT id, name, description, image as image, image_webp as imageWEBP, image_jpeg_2000 as imageJP2 FROM tag WHERE id = ?`,
         [tagId]
     );
     await conn.end();
@@ -82,8 +82,8 @@ interface Params {
 
 export async function getTagRelations(tagId: number): Promise<Params> {
     const conn = await getConn();
-    const [eventRows] = await conn.execute<IdResponse[]>(`SELECT event_id as id FROM event_tags WHERE tag_id = ?)`, [tagId]);
-    const [articleRows] = await conn.execute<IdResponse[]>(`SELECT article_id as id FROM article_tags WHERE tag_id = ?)`, [tagId]);
+    const [eventRows] = await conn.execute<IdResponse[]>(`SELECT event_id as id FROM event_tags WHERE tag_id = ?`, [tagId]);
+    const [articleRows] = await conn.execute<IdResponse[]>(`SELECT article_id as id FROM article_tags WHERE tag_id = ?`, [tagId]);
     const [videoRows] = await conn.execute<IdResponse[]>(`SELECT video_id as id FROM video_tags WHERE tag_id = ?`, [tagId]);
     await conn.end();
 
