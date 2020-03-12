@@ -13,6 +13,11 @@ export default (app: Router) => {
         return res.json(tags).status(200);
     });
 
+    route.get('/recent', async (req: Request, res: Response) => {
+        const tags = await getRecentTags();
+        return res.json(tags).status(200);
+    });
+
     route.get('/:tagId', async (req: Request, res: Response) => {
         const tags = await getTag(+req.params.tagId);
         return res.json(tags).status(200);
@@ -21,11 +26,6 @@ export default (app: Router) => {
     route.get('/relations/:tagId', async (req: Request, res: Response) => {
         const relations = await getTagRelations(+req.params.tagId);
         return res.json(relations).status(200);
-    });
-
-    route.get('/recent', async (req: Request, res: Response) => {
-        const tags = await getRecentTags();
-        return res.json(tags).status(200);
     });
 
     route.post('/create', checkUserRole('ARTICLE_EDIT'), async (req: Request, res: Response) => {
