@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
-import { getTags, patchTag, createTag, delTag, getRecentTags } from '../../services/tag';
+import { getTags, patchTag, createTag, delTag, getRecentTags, getTag, getTagRelations } from '../../services/tag';
 import { UploadedFile } from 'express-fileupload';
 
 const route = Router();
@@ -11,6 +11,16 @@ export default (app: Router) => {
     route.get('/list', async (req: Request, res: Response) => {
         const tags = await getTags();
         return res.json(tags).status(200);
+    });
+
+    route.get('/:tagId', async (req: Request, res: Response) => {
+        const tags = await getTag(+req.params.tagId);
+        return res.json(tags).status(200);
+    });
+
+    route.get('/relations/:tagId', async (req: Request, res: Response) => {
+        const relations = await getTagRelations(+req.params.tagId);
+        return res.json(relations).status(200);
     });
 
     route.get('/recent', async (req: Request, res: Response) => {
