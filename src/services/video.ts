@@ -4,9 +4,21 @@ import { OkPacket, RowDataPacket } from "mysql2";
 import { requireTags, Tag } from "./tag";
 import {streamFile} from './File';
 
+function buildYoutubeUrl(url: string): string {
+    const [,videoId] = url.match(/^https:\/\/www\.youtube\.com\/watch\?v=(.*)$/);
+    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+}
+
 async function donwloadThumbnail(url: string): Promise<[string, string, string]> {
-    const videoData = await fetchVideoByUrl(url);
-    return await streamFile('videoThumbs', videoData.preview.large, videoData._id);
+    if(url.indexOf('twitch.tv') !== -1) {
+        const videoData = await fetchVideoByUrl(url);
+        return await streamFile('videoThumbs', videoData.preview.large, videoData._id);
+    } else if(url.indexOf('youtube.com') !== -1) {
+        const videoUrl = buildYoutubeUrl(url);
+        return await streamFile('videoThumbs', videoUrl, videoUrl);
+    }
+
+    return ['', '', ''];
 }
 
 interface VideoRow extends RowDataPacket {
