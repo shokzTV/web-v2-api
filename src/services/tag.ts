@@ -99,6 +99,7 @@ export async function getTagRelations(tagId: number): Promise<Params> {
         articles: articles.map((article) => ({
             id: article.id,
             title: article.title,
+            body: article.body,
             cover: article.cover,
             coverWEBP: article.coverWEBP,
             coverJP2: article.coverJP2,
