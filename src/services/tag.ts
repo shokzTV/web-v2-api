@@ -71,7 +71,6 @@ interface IdResponse extends RowDataPacket {
 }
 
 interface Params {
-    event: DecoratedEvent[];
     articles: Array<{
         id: number;
         title: string;
@@ -84,17 +83,14 @@ interface Params {
 
 export async function getTagRelations(tagId: number): Promise<Params> {
     const conn = await getConn();
-    const [eventRows] = await conn.execute<IdResponse[]>(`SELECT event_id as id FROM event_tags WHERE tag_id = ?`, [tagId]);
     const [articleRows] = await conn.execute<IdResponse[]>(`SELECT article_id as id FROM article_tags WHERE tag_id = ?`, [tagId]);
     const [videoRows] = await conn.execute<IdResponse[]>(`SELECT video_id as id FROM video_tags WHERE tag_id = ?`, [tagId]);
     await conn.end();
 
-    const event = eventRows.length > 0 ? await getEvents(eventRows.map(({id}) => id)) : [];
     const articles = articleRows.length > 0 ? await getArticles(articleRows.map(({id}) => id)) : [];
     const videos = videoRows.length > 0 ?  await loadVideosById(videoRows.map(({id}) => id)) : [];
 
     return {
-        event,
         videos,
         articles: articles.map((article) => ({
             id: article.id,
@@ -103,6 +99,7 @@ export async function getTagRelations(tagId: number): Promise<Params> {
             cover: article.cover,
             coverWEBP: article.coverWEBP,
             coverJP2: article.coverJP2,
+            author: article.author,
         }))
     };
 }
