@@ -70,7 +70,7 @@ export async function getAllEvents(): Promise<DecoratedEvent[]> {
         CAST(is_main_event AS UNSIGNED) as isMainEvent,
         organizer_logo as organizerLogo,
         organizer_logo_webp as organizerLogoWEBP,
-        organizer_logo_jpeg_2000 as organizerLogoJP2;
+        organizer_logo_jpeg_2000 as organizerLogoJP2
       FROM event`);
     const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.imager as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id`);
     const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links`);
