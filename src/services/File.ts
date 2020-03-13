@@ -11,7 +11,8 @@ function buildPathWithType(type: FileTypes, identifier: string, name: string): s
     return `${buildPath(type, identifier)}${getFileType(name)}`;
 }
 function buildPath(type: FileTypes, identifier: string): string {
-    const imgHash = uuid(identifier, uuid.URL);
+    const bonusHash = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10); ;
+    const imgHash = uuid(identifier + bonusHash, uuid.URL);
     return `/static/${type}/${imgHash}`;
 }
 
