@@ -42,7 +42,7 @@ export async function streamFile(type: FileTypes, url: string, identifier: strin
         });
     }
 
-    return [fileHash + '.webp', fileHash + '.jp2', fileHash + '.jpeg'];
+    return [fileHash + '.webp', fileHash + '.jp2', fileHash + getFileType(url)];
 }
 
 interface Dimensions {
