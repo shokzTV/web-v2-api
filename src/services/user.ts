@@ -65,3 +65,18 @@ export async function loadUserById(id: number): Promise<User | null> {
 
     return user;
 }
+
+export async function loadUsers(): Promise<User[]> {
+    const conn = await getConn();
+    const [userRows] = await conn.query<UserResponse[]>('SELECT u.*, ur.role_id as role FROM user u LEFT JOIN user_roles ur ON ur.user_id = u.id;');
+    await conn.end();
+
+    return userRows;
+}
+
+export async function updateUserRole(userId: number, roleId: number): Promise<void> {
+    const conn = await getConn();
+    await conn.query('DELETE FROM user_roles WHERE user_id=?;', [userId]);
+    await conn.query('INSERT INTO user_roles (user_id, role_id) VALUES (?, ?);', [userId, roleId]);
+    await conn.end();
+}
