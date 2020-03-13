@@ -4,8 +4,6 @@ import { UploadedFile } from "express-fileupload";
 import { saveFormFile } from "./File";
 import { getArticles } from "./article";
 import { loadVideosById, Video } from "./video";
-import { getEvents } from "./event";
-import { DecoratedEvent } from "../entities/Event";
 
 type TagIdMap = {[x: string]: number};
 
