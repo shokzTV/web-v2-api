@@ -161,11 +161,16 @@ export async function createDraft(title: string, body: string, tags: string[], u
     return insertId;
 }
 
-export async function patchArticle(articleId: number, title: string, body: string, tags: string[]): Promise<void> {
+export async function patchArticle(articleId: number, title: string, body: string, tags: string[], cover: UploadedFile | null = null): Promise<void> {
     const conn = await getConn();
     await conn.execute('UPDATE article SET title=?,body=? WHERE id=?', [title, body, articleId]);
     await conn.execute('DELETE FROM article_tags WHERE article_id = ?', [articleId]);
     await assignTags(articleId, tags);
+
+    if(cover) {
+        const [webp, jpeg2000, orig] = await saveFormFile('covers', title, cover);
+        await conn.execute('UPDATE article SET cover=?, cover_webp=?, cover_jpeg_2000=? WHERE id=?', [orig, webp, jpeg2000, articleId]);
+    }
     await conn.end();
 }
 
