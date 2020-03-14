@@ -99,7 +99,7 @@ interface IdsRowPacket extends RowDataPacket {
 
 export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
     const conn = await getConn();
-    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published" ORDER BY created DESC LIMIT 4;');
+    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published" ORDER BY published DESC LIMIT 4;');
     await conn.end();
     const articles = await getArticles(articleIds.map(({id}) => id));
 
@@ -127,7 +127,7 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
 
 export async function getPublicArticlesIds(): Promise<number[]> {
     const conn = await getConn();
-    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published" ORDER BY created DESC;');
+    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published" ORDER BY published DESC;');
     await conn.end();
     return articleIds.map(({id}) => id);
 }
@@ -136,7 +136,7 @@ export async function getPublicArticles(articleIds: number[]): Promise<Article[]
     const conn = await getConn();
     const cond = Array(articleIds.length).fill('?');
 
-    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover as cover, a.cover_webp as coverWEBP, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar as avatar, u.avatar_webp as avatarWEBP, u.avatar_jpeg_2000 as avatarJP2, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published' AND a.id IN (${cond.join(',')})`, articleIds);
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover as cover, a.cover_webp as coverWEBP, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.published) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar as avatar, u.avatar_webp as avatarWEBP, u.avatar_jpeg_2000 as avatarJP2, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published' AND a.id IN (${cond.join(',')})`, articleIds);
     const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id`);
     await conn.end();
     return mapRows(articles, tags);
@@ -192,7 +192,7 @@ export async function deleteArticle(articleId: number): Promise<void> {
 
 export async function publishArticle(articleId: number): Promise<void> {
     const conn = await getConn();
-    await conn.execute('UPDATE article SET status="published" WHERE id = ?;', [articleId]);
+    await conn.execute('UPDATE article SET status="published", published=NOW() WHERE id = ?;', [articleId]);
     await conn.end();
 }
 
