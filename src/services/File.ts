@@ -5,7 +5,7 @@ import sharp from 'sharp';
 import { UploadedFile } from 'express-fileupload';
 import imagemagick from 'imagemagick';
 
-type FileTypes = 'videoThumbs' | 'tags' | 'covers' | 'userAvatar' | 'organizer/icon' | 'organizer/logo' | 'organizer/eventlogo' | 'banner';
+type FileTypes = 'videoThumbs' | 'tags' | 'covers' | 'userAvatar' | 'organizer/icon' | 'organizer/logo' | 'organizer/eventlogo' | 'banner' | 'streamerPreview';
 
 function buildPathWithType(type: FileTypes, identifier: string, name: string): string {
     return `${buildPath(type, identifier)}${getFileType(name)}`;
@@ -20,8 +20,8 @@ function getFileType(name: string): string {
     return name.substring(name.lastIndexOf('.'));
 }
 
-export async function streamFile(type: FileTypes, url: string, identifier: string, ): Promise<[string, string, string]> {
-    const relativePath = buildPathWithType('videoThumbs', identifier, url);
+export async function streamFile(type: FileTypes = 'videoThumbs', url: string, identifier: string, ): Promise<[string, string, string]> {
+    const relativePath = buildPathWithType(type, identifier, url);
     const path = __dirname + `/../..${relativePath}`;
     const res = await fetch(url);
     const fileStream = fs.createWriteStream(path);
