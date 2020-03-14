@@ -46,7 +46,8 @@ export default (app: Router) => {
     });
 
     route.patch('/:articleId', checkUserRole('ARTICLE_EDIT'), async (req: Request, res: Response) => {
-        await patchArticle(+req.params.articleId, req.body.title, req.body.body, getTags(req.body.tags));
+        const cover = req.files && req.files.cover ? req.files.cover as UploadedFile : null;
+        await patchArticle(+req.params.articleId, req.body.title, req.body.body, getTags(req.body.tags), cover);
         return res.send().status(204);
     });
 
