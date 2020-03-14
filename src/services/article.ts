@@ -2,7 +2,7 @@ import { UploadedFile } from 'express-fileupload';
 import { getConn } from '../db';
 import { OkPacket, RowDataPacket } from 'mysql2';
 import {requireTags, Tag} from './tag';
-import { saveFormFile } from './File';
+import { saveFormFile, removeFile } from './File';
 
 enum Status {
     draft = 'draft',
@@ -166,6 +166,27 @@ export async function patchArticle(articleId: number, title: string, body: strin
     await conn.execute('UPDATE article SET title=?,body=? WHERE id=?', [title, body, articleId]);
     await conn.execute('DELETE FROM article_tags WHERE article_id = ?', [articleId]);
     await assignTags(articleId, tags);
+    await conn.end();
+}
+
+interface ImageRow extends RowDataPacket {
+    cover: string; 
+    webp: string; 
+    jp2: string;
+}
+
+export async function deleteArticle(articleId: number): Promise<void> {
+    const conn = await getConn();
+    const [articleRows] = await conn.execute<ImageRow[]>('SELECT cover, cover_webp as webp, cover_jpeg_2000 as jp2 FROM article WHERE id = ?', [articleId]);
+    if(articleRows.length > 0) {
+        const article = articleRows[0];
+        article.cover.length > 0 && removeFile(article.cover);
+        article.webp.length > 0 && removeFile(article.webp);
+        article.jp2.length > 0 && removeFile(article.jp2);
+
+        await conn.execute('DELETE FROM article_tags WHERE article_id = ?', [articleId]);
+        await conn.execute('DELETE FROM article WHERE id = ?', [articleId]);
+    }
     await conn.end();
 }
 

@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
 import { UploadedFile } from 'express-fileupload';
 import { User } from '../../entities/User';
-import { createDraft, publishArticle, unpublishArticle, getArticles, patchArticle, getPublicArticles, getPublicArticlesIds, getFeaturedArticles } from '../../services/article';
+import { createDraft, publishArticle, unpublishArticle, getArticles, patchArticle, getPublicArticles, getPublicArticlesIds, getFeaturedArticles, deleteArticle } from '../../services/article';
 
 const route = Router();
 
@@ -57,6 +57,11 @@ export default (app: Router) => {
 
     route.patch('/:articleId/unpublish', checkUserRole('ARTICLE_UNPUBLISH'), async (req: Request, res: Response) => {
         await unpublishArticle(+req.params.articleId);
+        return res.send().status(204);
+    });
+
+    route.delete('/:articleId', checkUserRole('ARTICLE_DELETE'), async (req: Request, res: Response) => {
+        await deleteArticle(+req.params.articleId);
         return res.send().status(204);
     });
 };
