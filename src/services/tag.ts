@@ -81,7 +81,7 @@ interface Params {
 
 export async function getTagRelations(tagId: number): Promise<Params> {
     const conn = await getConn();
-    const [articleRows] = await conn.execute<IdResponse[]>(`SELECT article_id as id FROM article_tags WHERE tag_id = ?`, [tagId]);
+    const [articleRows] = await conn.execute<IdResponse[]>(`SELECT at.article_id as id FROM article_tags at INNER JOIN article a ON a.id = at.article_id AND a.status = "published" WHERE at.tag_id = ?`, [tagId]);
     const [videoRows] = await conn.execute<IdResponse[]>(`SELECT video_id as id FROM video_tags WHERE tag_id = ?`, [tagId]);
     await conn.end();
 

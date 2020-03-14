@@ -304,7 +304,7 @@ export async function getEventRelations(eventId: number): Promise<RelationRespon
     const [tags] = await conn.execute<IdResponse[]>(`SELECT tag_id as id FROM event_tags WHERE event_id = ?`, [eventId]);
     const tagIds = tags.map(({id}) => id);
     const cond = Array(tagIds.length).fill('?');
-    const [articleRows] = await conn.execute<IdResponse[]>(`SELECT article_id as id FROM article_tags WHERE tag_id IN (${cond.join(',')})`, tagIds);
+    const [articleRows] = await conn.execute<IdResponse[]>(`SELECT at.article_id as id FROM article_tags at INNER JOIN article a ON a.id = at.article_id AND a.status = "published" WHERE at.tag_id IN (${cond.join(',')})`, tagIds);
     const [videoRows] = await conn.execute<IdResponse[]>(`SELECT video_id as id FROM video_tags WHERE tag_id IN (${cond.join(',')})`, tagIds);
 
     await conn.end();
