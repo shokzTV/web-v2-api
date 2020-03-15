@@ -8,6 +8,7 @@ import { UploadedFile } from "express-fileupload";
 import { requireTags } from './tag';
 import { getArticles } from "./article";
 import { loadVideosById, Video } from "./video";
+import { triggerDeploy } from "./zeit-co";
 
 type EventRow = Event & RowDataPacket;
 type EventLinkRow = EventLink & RowDataPacket;
@@ -158,6 +159,7 @@ export async function createEvent(
     await assignTags(insertId, tags);
     await assignLinks(insertId, links);
     await conn.end();
+    await triggerDeploy();
     return insertId;
 }
 
@@ -231,6 +233,7 @@ export async function upadteEvent(
         assignLinks(eventId, links);
     }
     await conn.end();
+    await triggerDeploy();
 }
 
 async function assignTags(eventId: number, tags: string[] = []): Promise<void> {
@@ -262,6 +265,7 @@ export async function toggleFeatureEvent(eventId: number, feature: boolean): Pro
     const conn = await getConn();
     await conn.execute('UPDATE event SET is_featured = ? WHERE id = ?', [feature ? 1 : 0, eventId]);
     await conn.end();
+    await triggerDeploy();
 }
 
 export async function changeMainEvent(eventId: number): Promise<void> {
@@ -280,8 +284,8 @@ export async function deleteEvent(eventId: number): Promise<void> {
     await conn.execute('DELETE FROM event_links WHERE event_id = ?', [eventId]);
     await conn.execute('DELETE FROM event_tags WHERE event_id = ?', [eventId]);
     await conn.execute('DELETE FROM event WHERE id = ?', [eventId]);
-
     await conn.end();
+    await triggerDeploy();
 }
 
 interface RelationResponse {

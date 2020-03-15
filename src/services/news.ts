@@ -1,5 +1,6 @@
 import { getConn } from "../db";
 import { RowDataPacket, OkPacket } from "mysql2";
+import { triggerDeploy } from "./zeit-co";
 
 export interface News extends RowDataPacket {
     id: number;
@@ -27,6 +28,7 @@ export async function createNews(name: string, description: string = '', source:
     const conn = await getConn();
     const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO news (id, user_id, headline, description, source, created) VALUE (NULL, ?, ?, ?, ?, NOW());', [userId, name, description, source]);
     await conn.end();
+    await triggerDeploy();
     return insertId;
 }
 
@@ -44,12 +46,13 @@ export async function editNews(id: number, name?: string, description?: string, 
     if(source) {
         await conn.execute('UPDATE news SET source=? WHERE id=?', [source, id]);
     }
-
     await conn.end();
+    await triggerDeploy();
 }
 
 export async function deleteNews(id: number): Promise<void> {
     const conn = await getConn();
     await conn.execute('DELETE FROM news WHERE id = ?', [id]);
     await conn.end();
+    await triggerDeploy();
 }

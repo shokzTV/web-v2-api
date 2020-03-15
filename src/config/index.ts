@@ -32,5 +32,9 @@ export default {
     clientId: process.env.TWITCH_CLIENT_ID || '',
     clientSecret: process.env.TWITCH_CLIENT_SECRET || '',
     callbackURL: process.env.TWITCH_CALLBACK_URL || '',
-  }
+  },
+  staticDeployHooks: {
+    triggerDeploy: process.env.TRIGGER_DEPLOY || false,
+    triggerHookUrl: process.env.TRIGGER_HOOK_URL || '',
+  },
 }

@@ -3,6 +3,7 @@ import { getConn } from "../db";
 import { OkPacket, RowDataPacket } from "mysql2";
 import { requireTags, Tag } from "./tag";
 import {streamFile} from './File';
+import { triggerDeploy } from "./zeit-co";
 
 function buildYoutubeUrl(url: string): string {
     const [,videoId] = url.match(/^https:\/\/www\.youtube\.com\/watch\?v=(.*)$/);
@@ -106,6 +107,7 @@ export async function createVideo(title: string, source: string, tags: string[])
     await assignTags(insertId, tags);
     await conn.end();
 
+    await triggerDeploy();
     return insertId;
 }
 
@@ -117,6 +119,7 @@ export async function patchVideo(videoId: number, title: string, tags: string[])
         await assignTags(videoId, tags);
     }
     await conn.end();
+    await triggerDeploy();
 }
 
 export async function deleteVideo(videoId: number): Promise<void> {
@@ -124,6 +127,7 @@ export async function deleteVideo(videoId: number): Promise<void> {
     await conn.execute('DELETE FROM video_tags WHERE video_id = ?', [videoId]);
     await conn.execute('DELETE FROM video WHERE id = ?', [videoId]);
     await conn.end();
+    await triggerDeploy();
 }
 
 async function assignTags(videoId: number, tags: string[] = []): Promise<void> {
