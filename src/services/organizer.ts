@@ -3,6 +3,7 @@ import { RowDataPacket, OkPacket } from 'mysql2';
 import { getConn } from '../db';
 import { UploadedFile } from 'express-fileupload';
 import { saveFormFile, removeFile } from './File';
+import { triggerDeploy } from './zeit-co';
 
 type OrganizerRow = Organizer & RowDataPacket;
 type EventCountRow = {count: number, organizer: number} & RowDataPacket;
@@ -67,6 +68,7 @@ export async function updateOrganizer(organizerId: number, name?: string, descri
         await conn.execute('UPDATE organizer SET logo = ?, logo_webp = ?, logo_jpeg_2000 = ? WHERE id = ?;', [orig, webp, jp2, organizerId]);
     }
     await conn.end();
+    await triggerDeploy();
 }
 
 export async function deleteOrganizer(organizerId: number): Promise<void> {

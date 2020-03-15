@@ -3,6 +3,7 @@ import { getConn } from '../db';
 import { OkPacket, RowDataPacket } from 'mysql2';
 import {requireTags, Tag} from './tag';
 import { saveFormFile, removeFile } from './File';
+import { triggerDeploy } from './zeit-co';
 
 enum Status {
     draft = 'draft',
@@ -161,6 +162,10 @@ export async function createDraft(title: string, body: string, tags: string[], u
     return insertId;
 }
 
+interface StatusResponse extends RowDataPacket {
+    status: string;
+}
+
 export async function patchArticle(articleId: number, title: string, body: string, tags: string[], cover: UploadedFile | null = null): Promise<void> {
     const conn = await getConn();
     await conn.execute('UPDATE article SET title=?,body=? WHERE id=?', [title, body, articleId]);
@@ -171,10 +176,16 @@ export async function patchArticle(articleId: number, title: string, body: strin
         const [webp, jpeg2000, orig] = await saveFormFile('covers', title, cover);
         await conn.execute('UPDATE article SET cover=?, cover_webp=?, cover_jpeg_2000=? WHERE id=?', [orig, webp, jpeg2000, articleId]);
     }
+
+    const [articleRows] = await conn.execute<StatusResponse[]>('SELECT status FROM article WHERE id = ?', [articleId]);
+    if(articleRows.length && articleRows[0].status === 'published') {
+        await triggerDeploy();
+    }
     await conn.end();
 }
 
 interface ImageRow extends RowDataPacket {
+    status: string;
     cover: string; 
     webp: string; 
     jp2: string;
@@ -182,7 +193,7 @@ interface ImageRow extends RowDataPacket {
 
 export async function deleteArticle(articleId: number): Promise<void> {
     const conn = await getConn();
-    const [articleRows] = await conn.execute<ImageRow[]>('SELECT cover, cover_webp as webp, cover_jpeg_2000 as jp2 FROM article WHERE id = ?', [articleId]);
+    const [articleRows] = await conn.execute<ImageRow[]>('SELECT status, cover, cover_webp as webp, cover_jpeg_2000 as jp2 FROM article WHERE id = ?', [articleId]);
     if(articleRows.length > 0) {
         const article = articleRows[0];
         article.cover.length > 0 && removeFile(article.cover);
@@ -191,20 +202,27 @@ export async function deleteArticle(articleId: number): Promise<void> {
 
         await conn.execute('DELETE FROM article_tags WHERE article_id = ?', [articleId]);
         await conn.execute('DELETE FROM article WHERE id = ?', [articleId]);
+
+        if(article.status === 'published') {
+            await triggerDeploy();
+        }
     }
     await conn.end();
+
 }
 
 export async function publishArticle(articleId: number): Promise<void> {
     const conn = await getConn();
     await conn.execute('UPDATE article SET status="published", published=NOW() WHERE id = ?;', [articleId]);
     await conn.end();
+    await triggerDeploy();
 }
 
 export async function unpublishArticle(articleId: number): Promise<void> {
     const conn = await getConn();
     await conn.execute('UPDATE article SET status="hidden" WHERE id = ?;', [articleId]);
     await conn.end();
+    await triggerDeploy();
 }
 
 async function assignTags(articleId: number, tags: string[] = []): Promise<void> {
