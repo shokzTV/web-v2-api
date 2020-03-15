@@ -16,7 +16,7 @@ export interface Streamer extends RowDataPacket {
 
 export async function getAllStreamer(): Promise<Streamer[]> {
     const conn = await getConn();
-    const [dataRows] = await conn.execute<Streamer[]>('SELECT id, name, title, viewer, preview, preview_webp as previewWEBP, preview_jpeg_2000 as previewJP2, sort_order, online FROM streamer;');
+    const [dataRows] = await conn.execute<Streamer[]>('SELECT id, twitch_id as twitchId, name, title, viewer, preview, preview_webp as previewWEBP, preview_jpeg_2000 as previewJP2, sort_order, online FROM streamer;');
     await conn.end();
 
     return dataRows;
@@ -24,7 +24,7 @@ export async function getAllStreamer(): Promise<Streamer[]> {
 
 export async function getOnlineStreamer(): Promise<Streamer[]> {
     const conn = await getConn();
-    const [dataRows] = await conn.execute<Streamer[]>('SELECT id, name, title, viewer, preview, preview_webp as previewWEBP, preview_jpeg_2000 as previewJP2, sort_order FROM streamer WHERE online = TRUE;');
+    const [dataRows] = await conn.execute<Streamer[]>('SELECT id, twitch_id as twitchId, name, title, viewer, preview, preview_webp as previewWEBP, preview_jpeg_2000 as previewJP2, sort_order FROM streamer WHERE online = TRUE;');
     await conn.end();
 
     return dataRows;
