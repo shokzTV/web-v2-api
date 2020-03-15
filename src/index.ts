@@ -4,6 +4,8 @@ import fs from 'fs';
 import https from 'https';
 import passport from 'passport';
 import http from 'http';
+import {green} from 'chalk';
+import './tasks';
 
 let key: string;
 let cert: string;
@@ -21,7 +23,7 @@ async function startServer() {
 
     const server  = config.server.secure ? https.createServer({key, cert, ca}, app) : http.createServer(app);
     server.listen(config.port, () => {
-        console.log(`API started on: ${config.port}`);
+        console.log(green(`API started on: ${config.port}`));
     });
 }
 

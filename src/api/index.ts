@@ -9,6 +9,7 @@ import organizerRoutes from './routes/organizer';
 import eventRoutes from './routes/event';
 import newsRoute from './routes/news';
 import userRoute from './routes/user';
+import streamerRoute from './routes/streamer';
 import { PassportStatic } from 'passport';
 
 export default ({passport}: {passport: PassportStatic}) => {
@@ -25,6 +26,7 @@ export default ({passport}: {passport: PassportStatic}) => {
 	eventRoutes(app);
 	newsRoute(app);
 	userRoute(app);
+	streamerRoute(app);
 	
 	return app;
 }
