@@ -11,17 +11,17 @@ export default (app: Router) => {
       return res.json(streamer).status(200);
   });
 
-  route.get('/online', checkUserRole('ADMIN_ACCESS'), async (req: Request, res: Response) => {
+  route.get('/online', async (req: Request, res: Response) => {
     const streamer = await getOnlineStreamer();
     return res.json(streamer).status(200);
   });
 
-  route.post('/create', checkUserRole('ADMIN_ACCESS'), async (req: Request, res: Response) => {
+  route.post('/create', checkUserRole('STREAMER_CREATE'), async (req: Request, res: Response) => {
     const streamer = await createStreamer(req.body.name);
     return res.json(streamer).status(200);
   });
 
-  route.delete('/remove/:streamerId', checkUserRole('ADMIN_ACCESS'), async (req: Request, res: Response) => {
+  route.delete('/remove/:streamerId', checkUserRole('STREAMER_REMOVE'), async (req: Request, res: Response) => {
     await removeStreamer(+req.params.streamerId);
     return res.send().status(204);
   });

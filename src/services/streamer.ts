@@ -1,4 +1,4 @@
-import { RowDataPacket } from "mysql2";
+import { RowDataPacket, OkPacket } from "mysql2";
 import { getConn } from "../db";
 import { removeFile, streamFile } from "./File";
 import { fetchUser } from "./twitchapi";
@@ -30,12 +30,14 @@ export async function getOnlineStreamer(): Promise<Streamer[]> {
     return dataRows;
 }
 
-export async function createStreamer(name: string): Promise<void> {
+export async function createStreamer(name: string): Promise<number> {
     const conn = await getConn();
     const userResponse = await fetchUser(name);
     const twitchId = userResponse.users[0]._id;
-    await conn.execute("INSERT INTO streamer (id, name, twitch_id, title, viewer, preview, preview_webp, preview_jpeg_2000, sort_order) VALUES (NULL, ?, ?, '', 0, '', '', '', 0)", [name, twitchId]);
+    const [{insertId}] = await conn.execute<OkPacket>("INSERT INTO streamer (id, name, twitch_id, title, viewer, preview, preview_webp, preview_jpeg_2000, sort_order) VALUES (NULL, ?, ?, '', 0, '', '', '', 0)", [name, twitchId]);
     await conn.end();
+
+    return insertId;
 }
 
 export async function updateStreamerStatus(twitchId: string, online: Boolean, title: string, viewer: number, previewUrl: string): Promise<void> {
