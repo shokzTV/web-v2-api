@@ -143,7 +143,7 @@ export async function getPublicArticles(articleIds: number[]): Promise<Article[]
     return mapRows(articles, tags);
 }
 
-export async function createDraft(title: string, body: string, tags: string[], userId: number, cover: UploadedFile |  null): Promise<number> {
+export async function createDraft(title: string, body: string, slug: string, tags: string[], userId: number, cover: UploadedFile |  null): Promise<number> {
     const conn = await getConn();
     
     let jpeg: string = '', webp: string= '', jp2: string= '';
@@ -152,8 +152,8 @@ export async function createDraft(title: string, body: string, tags: string[], u
     }
 
     const [{insertId}] = await conn.execute<OkPacket>(
-        `INSERT INTO article (id,title,author,created,cover,cover_webp,cover_jpeg_2000,body,status) VALUES (NULL,?,?,NOW(),?,?,?,?,?)`,
-        [title, userId, jpeg, webp, jp2, body, Status.draft]
+        `INSERT INTO article (id,title,author,created,cover,cover_webp,cover_jpeg_2000,body,status,slug) VALUES (NULL,?,?,NOW(),?,?,?,?,?,?)`,
+        [title, userId, jpeg, webp, jp2, body, Status.draft, slug]
     );
 
     await assignTags(insertId, tags);
@@ -166,9 +166,9 @@ interface StatusResponse extends RowDataPacket {
     status: string;
 }
 
-export async function patchArticle(articleId: number, title: string, body: string, tags: string[], cover: UploadedFile | null = null): Promise<void> {
+export async function patchArticle(articleId: number, title: string, body: string, slug: string, tags: string[], cover: UploadedFile | null = null): Promise<void> {
     const conn = await getConn();
-    await conn.execute('UPDATE article SET title=?,body=? WHERE id=?', [title, body, articleId]);
+    await conn.execute('UPDATE article SET title=?,body=?,slug=? WHERE id=?', [title, body, slug, articleId]);
     await conn.execute('DELETE FROM article_tags WHERE article_id = ?', [articleId]);
     await assignTags(articleId, tags);
 

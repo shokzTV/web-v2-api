@@ -127,27 +127,32 @@ export async function getRecentTags(): Promise<Tag[]> {
     return tags;
 }
 
-export async function createTag(name: string, description: string = '', image?: UploadedFile): Promise<number> {
+export async function createTag(name: string, description: string = '', slug: string = '', image?: UploadedFile): Promise<number> {
     const conn = await getConn();
     
     let webp: string|null= '', jpeg2000: string|null= '', orig: string|null = '';
     if(image) {
         [webp, jpeg2000, orig] = await saveTagCover(name, image);
     }
-    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image, image_webp, image_jpeg_2000) VALUE (NULL, ?, ?, ?, ?, ?);', [name, description, orig, webp, jpeg2000]);
+    const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image, image_webp, image_jpeg_2000, slug) VALUE (NULL, ?, ?, ?, ?, ?, ?);', [name, description, orig, webp, jpeg2000, slug]);
     await conn.end();
 
     return insertId;
 }
 
-export async function patchTag(id: number, name?: string, description?: string, image?: UploadedFile): Promise<void> {
+export async function patchTag(id: number, name?: string, description?: string, slug?: string, image?: UploadedFile): Promise<void> {
     const conn = await getConn();
 
     if(name) {
         await conn.execute('UPDATE tag SET name=? WHERE id=?', [name, id]);
     }
+    
     if(description) {
         await conn.execute('UPDATE tag SET description=? WHERE id=?', [description, id]);
+    }
+
+    if(slug) {
+        await conn.execute('UPDATE tag SET slug=? WHERE id=?', [slug, id]);
     }
 
     if(image) {

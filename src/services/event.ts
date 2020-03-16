@@ -142,6 +142,7 @@ export async function createEvent(
     organizerLogo: null | UploadedFile,
     tags: string[],
     links: string[],
+    slug: string,
 ): Promise<number> {
     let ban: string = '', banWebp: string = '', banJP2: string = '', org: string = '', orgWebp: string = '', orgJP2: string = '';
     if(banner) {
@@ -153,9 +154,9 @@ export async function createEvent(
 
     const conn = await getConn();
     const [{insertId}] = await conn.execute<OkPacket>(`
-        INSERT INTO event (id, organizer_id, name, description_short, start, end, country, location, price_pool, banner, banner_webp, banner_jpeg_2000, description, description_type, disclaimer, organizer_logo, organizer_logo_webp, organizer_logo_jpeg_2000, is_featured, is_main_event) VALUE 
-        (NULL, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, b'0', b'0');`, 
-    [organizer, name, descShort, start, end, country, location, price, ban, banWebp, banJP2, description, descriptionType, disclaimer, org, orgWebp, orgJP2]);
+        INSERT INTO event (id, organizer_id, name, description_short, start, end, country, location, price_pool, banner, banner_webp, banner_jpeg_2000, description, description_type, disclaimer, organizer_logo, organizer_logo_webp, organizer_logo_jpeg_2000, is_featured, is_main_event, slug) VALUE 
+        (NULL, ?, ?, ?, FROM_UNIXTIME(?), FROM_UNIXTIME(?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, b'0', b'0', ?);`, 
+    [organizer, name, descShort, start, end, country, location, price, ban, banWebp, banJP2, description, descriptionType, disclaimer, org, orgWebp, orgJP2, slug]);
     await assignTags(insertId, tags);
     await assignLinks(insertId, links);
     await conn.end();
@@ -180,6 +181,7 @@ export async function upadteEvent(
     organizerLogo?: null | UploadedFile,
     tags?: string[],
     links?: string[],
+    slug?: string
 ): Promise<void> {
     const conn = await getConn();
     const oldEvent = (await getEvents([eventId]))[0];
@@ -231,6 +233,9 @@ export async function upadteEvent(
     if(links) {
         await conn.execute('DELETE FROM event_links WHERE event_id = ?', [eventId]);
         assignLinks(eventId, links);
+    }
+    if(slug) {
+        await conn.execute('UPDATE event SET slug = ? WHERE id = ?', [slug, eventId]);
     }
     await conn.end();
     await triggerDeploy();

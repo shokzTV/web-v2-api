@@ -52,7 +52,8 @@ export default (app: Router) => {
             pricePool = '',
             description = '',
             descriptionType = 'description',
-            disclaimer = ''
+            disclaimer = '',
+            slug = '',
         } = req.body;
         const tags = getArrayFromBody(req.body.tags);
         const links = getArrayFromBody(req.body.links);
@@ -72,7 +73,8 @@ export default (app: Router) => {
             banner as UploadedFile,
             organizationLogo as UploadedFile,
             tags,
-            links
+            links,
+            slug
         );
         return res.json(eventId).status(200);
     });
@@ -89,7 +91,8 @@ export default (app: Router) => {
             pricePool,
             description,
             descriptionType,
-            disclaimer
+            disclaimer,
+            slug
         } = req.body;
         const tags = getArrayFromBody(req.body.tags);
         const links = getArrayFromBody(req.body.links);
@@ -111,6 +114,7 @@ export default (app: Router) => {
             organizationLogo as UploadedFile | undefined,
             tags,
             links,
+            slug,
         );
         return res.send().status(204);
     });
