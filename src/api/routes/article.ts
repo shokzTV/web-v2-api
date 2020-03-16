@@ -40,14 +40,14 @@ export default (app: Router) => {
     route.post('/create', checkUserRole('ARTICLE_CREATE'), async (req: Request, res: Response) => {
         const userId = (req.user! as User).id;
         const cover = req.files && req.files.cover ? req.files.cover as UploadedFile : null;
-        const {title, body} = req.body;
-        const articleId = await createDraft(title, body, getTags(req.body.tags), userId, cover);
+        const {title, body, slug = ''} = req.body;
+        const articleId = await createDraft(title, body, slug, getTags(req.body.tags), userId, cover);
         return res.json(articleId).status(201);
     });
 
     route.patch('/:articleId', checkUserRole('ARTICLE_EDIT'), async (req: Request, res: Response) => {
         const cover = req.files && req.files.cover ? req.files.cover as UploadedFile : null;
-        await patchArticle(+req.params.articleId, req.body.title, req.body.body, getTags(req.body.tags), cover);
+        await patchArticle(+req.params.articleId, req.body.title, req.body.body, req.body.slug, getTags(req.body.tags), cover);
         return res.send().status(204);
     });
 
