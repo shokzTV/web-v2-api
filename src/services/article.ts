@@ -62,6 +62,7 @@ function mapRows(rows: ArticleRow[], tags: TagResponse[]): Article[] {
         coverJP2: a.coverJP2,
         status: a.status,
         created: a.created,
+        slug: a.slug,
         author: {
             id: a.userId,
             twitch: a.twitch_id,
@@ -86,7 +87,7 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
         params = articleIds;
     }
 
-    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover as cover, a.cover_webp as coverWEBP, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar as avatar, u.avatar_webp as avatarWEBP, u.avatar_jpeg_2000 as avatarJP2, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author ${conditionArticle}`, params);
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover as cover, a.cover_webp as coverWEBP, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.created) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar as avatar, u.avatar_webp as avatarWEBP, u.avatar_jpeg_2000 as avatarJP2, u.custom_title, a.slug as slug FROM article a INNER JOIN user u ON u.id = a.author ${conditionArticle}`, params);
     const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id ${conditionTags}`, params);
 
     await conn.end();
