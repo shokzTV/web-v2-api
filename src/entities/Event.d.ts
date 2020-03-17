@@ -20,6 +20,7 @@ export interface Event {
     disclaimer: string;
     isFeatured: boolean;
     isMainEvent: boolean;
+    slug: string;
 }
 
 export interface EventLink {
