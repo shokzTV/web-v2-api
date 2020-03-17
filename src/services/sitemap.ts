@@ -27,7 +27,7 @@ export async function createSitemap() {
 
     for(let page of staticPages) {
         xml += '<url>';
-        xml += `<loc>/${baseUrl + page}</loc>`;
+        xml += `<loc>${baseUrl + page}</loc>`;
         xml += `<lastmod>${lastModified}</lastmod>`;
         xml += '</url>';
     }  
@@ -36,7 +36,7 @@ export async function createSitemap() {
     console.log(articleSlugs);
     for(let slug of articleSlugs) {
         xml += '<url>';
-        xml += `<loc>/${baseUrl + 'artikel/' + slug}</loc>`;
+        xml += `<loc>${baseUrl + 'artikel/' + slug}</loc>`;
         xml += `<lastmod>${lastModified}</lastmod>`;
         xml += '</url>';
     }  
@@ -44,7 +44,7 @@ export async function createSitemap() {
     const eventSlugs = await getEventSlugs();
     for(let slug of eventSlugs) {
         xml += '<url>';
-        xml += `<loc>/${baseUrl + 'event/' + slug}</loc>`;
+        xml += `<loc>${baseUrl + 'event/' + slug}</loc>`;
         xml += `<lastmod>${lastModified}</lastmod>`;
         xml += '</url>';
     }  
@@ -52,7 +52,7 @@ export async function createSitemap() {
     const tagSlugs = await getTagSlugs();
     for(let slug of tagSlugs) {
         xml += '<url>';
-        xml += `<loc>/${baseUrl + 'kategorie/' + slug}</loc>`;
+        xml += `<loc>${baseUrl + 'kategorie/' + slug}</loc>`;
         xml += `<lastmod>${lastModified}</lastmod>`;
         xml += '</url>';
     }  
