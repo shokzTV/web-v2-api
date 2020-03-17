@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
 import { UploadedFile } from 'express-fileupload';
 import { User } from '../../entities/User';
-import { createDraft, publishArticle, unpublishArticle, getArticles, patchArticle, getPublicArticles, getPublicArticlesIds, getFeaturedArticles, deleteArticle, getPublicArticleSlugs } from '../../services/article';
+import { createDraft, publishArticle, unpublishArticle, getArticles, patchArticle, getPublicArticles, getFeaturedArticles, deleteArticle, getPublicArticleSlugs } from '../../services/article';
 
 const route = Router();
 
