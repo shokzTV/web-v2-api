@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { getMainEvent, getEvents, deleteEvent, changeMainEvent, toggleFeatureEvent, getEventIds, createEvent, upadteEvent, getAllEvents, getFeaturedEvents, getEventRelations } from '../../services/event';
-import { getIdsFromRequest, getArrayFromBody } from './helper';
+import { getMainEvent, getEvents, deleteEvent, changeMainEvent, toggleFeatureEvent, createEvent, upadteEvent, getAllEvents, getFeaturedEvents, getEventRelations, getEventSlugs } from '../../services/event';
+import { getArrayFromBody } from './helper';
 import { UploadedFile } from 'express-fileupload';
 import { checkUserRole } from '../../middlewares/access';
 
@@ -19,8 +19,8 @@ export default (app: Router) => {
         return res.json(events).status(200);
     });
 
-    route.get('/pastIds', async (req: Request, res: Response) => {
-        const eventIds = await getEventIds();
+    route.get('/pastSlugs', async (req: Request, res: Response) => {
+        const eventIds = await getEventSlugs();
         return res.json(eventIds).status(200);
     });
 
@@ -29,13 +29,12 @@ export default (app: Router) => {
         return res.send(relations).status(200);
     });
 
-    route.get('/byId', async (req: Request, res: Response) => {
-        const ids = getIdsFromRequest(req);
-        const events = await getEvents(ids);
+    route.get('/bySlug', async (req: Request, res: Response) => {
+        const events = await getEvents(req.query.slugs);
         return res.json(events).status(200);
     });
     
-    route.get('/list', async (req: Request, res: Response) => {
+    route.get('/list', checkUserRole('ADMIN_ACCESS'),async (req: Request, res: Response) => {
         const events = await getAllEvents();
         return res.json(events).status(200);
     });

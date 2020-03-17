@@ -18,22 +18,22 @@ type TagResponse = Tag  & RowDataPacket & {
     article: number;
 }
 
-export async function getEventIds(): Promise<number[]> {
+export async function getEventSlugs(): Promise<string[]> {
     const conn = await getConn();
-    const [eventRows] = await conn.execute<EventRow[]>(`SELECT id FROM event WHERE is_featured = 0 ORDER by end DESC`);
+    const [eventRows] = await conn.execute<EventRow[]>(`SELECT slug FROM event WHERE is_featured = 0 ORDER by end DESC`);
     await conn.end();
-    return eventRows.map(({id}) => id);
+    return eventRows.map(({slug}) => slug);
 }
 
 export async function getMainEvent(): Promise<DecoratedEvent | undefined> {
     const conn = await getConn();
-    const [eventRows] = await conn.execute<EventRow[]>(`SELECT id FROM event WHERE is_main_event = 1;`);
+    const [eventRows] = await conn.execute<EventRow[]>(`SELECT slug FROM event WHERE is_main_event = 1;`);
     if(eventRows[0]) {
-        const eventId = eventRows[0].id;
+        const eventSlug = eventRows[0].slug;
         await conn.end();
-        const events = await getEvents([eventId]);
+        const events = await getEvents([eventSlug]);
     
-        return events.find(({id}) => id === eventId);
+        return events.find(({slug}) => slug === eventSlug);
     }
 
     return;
@@ -41,10 +41,10 @@ export async function getMainEvent(): Promise<DecoratedEvent | undefined> {
 
 export async function getFeaturedEvents(): Promise<DecoratedEvent[]> {
     const conn = await getConn();
-    const [eventRows] = await conn.execute<EventRow[]>(`SELECT id FROM event WHERE is_featured = 1;`);
-    const eventIds = eventRows.map(({id}) => id);
+    const [eventRows] = await conn.execute<EventRow[]>(`SELECT slug FROM event WHERE is_featured = 1;`);
+    const eventSlugs = eventRows.map(({slug}) => slug);
     await conn.end();
-    return eventIds.length === 0 ? [] : await getEvents(eventIds);
+    return eventSlugs.length === 0 ? [] : await getEvents(eventSlugs);
 }
 
 export async function getAllEvents(): Promise<DecoratedEvent[]> {
@@ -87,10 +87,10 @@ export async function getAllEvents(): Promise<DecoratedEvent[]> {
     }));
 }
 
-export async function getEvents(ids: number[]): Promise<DecoratedEvent[]> {
+export async function getEvents(slugs: string[]): Promise<DecoratedEvent[]> {
     const conn = await getConn();
 
-    const cond = Array(ids.length).fill('?');
+    const cond = Array(slugs.length).fill('?');
     const [events] = await conn.execute<EventRow[]>(`
       SELECT 
         id, 
@@ -112,10 +112,14 @@ export async function getEvents(ids: number[]): Promise<DecoratedEvent[]> {
         CAST(is_main_event AS UNSIGNED) as isMainEvent,
         organizer_logo as organizerLogo,
         organizer_logo_webp as organizerLogoWEBP,
-        organizer_logo_jpeg_2000 as organizerLogoJP2
-      FROM event WHERE id IN (${cond.join(',')})`, ids);
-    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${cond.join(',')})`, ids);
-    const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links WHERE event_id IN (${cond.join(',')})`, ids);
+        organizer_logo_jpeg_2000 as organizerLogoJP2,
+        slug
+      FROM event WHERE slug IN (${cond.join(',')})`, slugs);
+
+    const ids = events.map(({id}) => id);
+    const idCond = Array(ids.length).fill('?');
+    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${idCond.join(',')})`, ids);
+    const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links WHERE event_id IN (${idCond.join(',')})`, ids);
     const [organizers] = await conn.execute<OrganizerRow[]>('SELECT * from organizer');
     await conn.end();
 
@@ -185,7 +189,9 @@ export async function upadteEvent(
     slug?: string
 ): Promise<void> {
     const conn = await getConn();
-    const oldEvent = (await getEvents([eventId]))[0];
+    const [oldEventRows] = await conn.execute<EventRow[]>('SELECT slug from event WHERE id = ?', [eventId]);
+
+    const oldEvent = oldEventRows && (await getEvents([oldEventRows[0].slug]))[0];
     if(banner) {
         const bannerPath = await saveFormFile('banner', name || oldEvent.name, banner, {height: 200});
         await conn.execute('UPDATE event SET banner = ? WHERE id = ?', [bannerPath, eventId]);
