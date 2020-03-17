@@ -71,7 +71,8 @@ function mapRows(rows: ArticleRow[], tags: TagResponse[]): Article[] {
             avatar: a.avatar,
             avatarWEBP: a.avatarWEBP,
             avatarJP2: a.avatarJP2,
-            title: a.custom_title
+            title: a.custom_title,
+            profileUrl: a.profile_url,
         },
         tags: tags.filter(({article}) => article === a.articleId).map(({id, name, image, imageWEBP, imageJP2}) => ({id, name, image, imageWEBP, imageJP2})),
     }));
@@ -141,7 +142,7 @@ export async function getPublicArticles(slugs: string[]): Promise<Article[]> {
     const conn = await getConn();
     const cond = Array(slugs.length).fill('?');
 
-    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover as cover, a.cover_webp as coverWEBP, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.published) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar as avatar, u.avatar_webp as avatarWEBP, u.avatar_jpeg_2000 as avatarJP2, u.custom_title, a.slug as slug FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published' AND a.slug IN (${cond.join(',')})`, slugs);
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover as cover, a.cover_webp as coverWEBP, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.published) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar as avatar, u.avatar_webp as avatarWEBP, u.avatar_jpeg_2000 as avatarJP2, u.custom_title, u.profile_url, a.slug as slug FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published' AND a.slug IN (${cond.join(',')})`, slugs);
     const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id`);
     await conn.end();
     return mapRows(articles, tags);
