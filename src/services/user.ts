@@ -85,13 +85,13 @@ export async function updateUserRole(userId: number, roleId: number): Promise<vo
 export async function updateUser(userId: number, data: Partial<User>): Promise<void> {
     const conn = await getConn();
     if(data.customTitle) {
-        await conn.query('UPDATE user SET custom_title=? WHERE user_id=?;', [data.customTitle, userId]);
+        await conn.query('UPDATE user SET custom_title=? WHERE id=?;', [data.customTitle, userId]);
     }
     if(data.displayName) {
-        await conn.query('UPDATE user SET display_name=? WHERE user_id=?;', [data.displayName, userId]);
+        await conn.query('UPDATE user SET display_name=? WHERE id=?;', [data.displayName, userId]);
     }
     if(data.profileUrl) {
-        await conn.query('UPDATE user SET profile_url=? WHERE user_id=?;', [data.profileUrl, userId]);
+        await conn.query('UPDATE user SET profile_url=? WHERE id=?;', [data.profileUrl, userId]);
     }
     await conn.end();
 
