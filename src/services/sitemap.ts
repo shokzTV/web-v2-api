@@ -33,7 +33,6 @@ export async function createSitemap() {
     }  
 
     const articleSlugs = await getPublicArticleSlugs();
-    console.log(articleSlugs);
     for(let slug of articleSlugs) {
         xml += '<url>';
         xml += `<loc>${baseUrl + 'artikel/' + slug}</loc>`;
