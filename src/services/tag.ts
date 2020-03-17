@@ -25,7 +25,7 @@ export async function requireTags(tags: string[] = []): Promise<TagIdMap> {
         const unknownTags = tags.filter((tag) => !knownNames.includes(tag));
     
         for(const unknwonTag of unknownTags) {
-            const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image, image_webp, image_jpeg_2000) VALUES (NULL, ?, "", "", "", "")', [unknwonTag]);
+            const [{insertId}] = await conn.execute<OkPacket>('INSERT INTO tag (id, name, description, image, image_webp, image_jpeg_2000, slug) VALUES (NULL, ?, "", "", "", "", "")', [unknwonTag]);
             mappedTags[unknwonTag] = insertId;
         }
     
@@ -54,11 +54,11 @@ export async function getTags(): Promise<Tag[]> {
     return tags;
 }
 
-export async function getTag(tagId: number): Promise<Tag> {
+export async function getTagBySlug(slug: string): Promise<Tag> {
     const conn = await getConn();
     const [tags] = await conn.execute<Tag[]>(
-        `SELECT id, name, description, image as image, image_webp as imageWEBP, image_jpeg_2000 as imageJP2 FROM tag WHERE id = ?`,
-        [tagId]
+        `SELECT id, name, description, image as image, image_webp as imageWEBP, image_jpeg_2000 as imageJP2, slug FROM tag WHERE slug = ?`,
+        [slug]
     );
     await conn.end();
     return tags[0];
@@ -104,19 +104,19 @@ export async function getTagRelations(tagId: number): Promise<Params> {
 }
 
 interface IdsRowPacket extends RowDataPacket {
-    id: number;
+    slug: string;
 }
 
-export async function getTagIds(): Promise<number[]> {
+export async function getTagSlugs(): Promise<string[]> {
     const conn = await getConn();
-    const [tags] = await conn.execute<IdsRowPacket[]>(`SELECT id from tag`);
+    const [tags] = await conn.execute<IdsRowPacket[]>(`SELECT slug from tag`);
     await conn.end();
-    return tags.map(({id}) => id);
+    return tags.map(({slug}) => slug);
 }
 export async function getRecentTags(): Promise<Tag[]> {
     const conn = await getConn();
     const [tags] = await conn.execute<Tag[]>(`
-        SELECT t.id, t.name, t.description, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2, UNIX_TIMESTAMP(a.created) as date
+        SELECT t.id, t.name, t.description, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2, UNIX_TIMESTAMP(a.created) as date, t.slug as slug
           FROM tag t
      LEFT JOIN article_tags at ON at.tag_id = t.id
      LEFT JOIN article a ON a.id = at.article_id
