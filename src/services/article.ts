@@ -13,6 +13,7 @@ enum Status {
 
 interface Article {
     id: number;
+    slug: string;
     title: string;
     body: string;
     tags: Array<{
@@ -96,19 +97,20 @@ export async function getArticles(articleIds: number[] = []): Promise<Article[]>
 }
 
 interface IdsRowPacket extends RowDataPacket {
-    id: number;
+    slug: string;
 }
 
 export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
     const conn = await getConn();
-    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published" ORDER BY published DESC LIMIT 4;');
+    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT slug FROM article WHERE status = "published" ORDER BY published DESC LIMIT 4;');
     await conn.end();
-    const articles = await getArticles(articleIds.map(({id}) => id));
+    const articles = await getPublicArticles(articleIds.map(({slug}) => slug));
 
     return articles.map((article, index) => {
         if(index === 3) {
             return  {
                 id: article.id,
+                slug: article.slug,
                 title: article.title,
                 body: article.body,
                 cover: article.cover,
@@ -119,6 +121,7 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
 
         return {
             id: article.id,
+            slug: article.slug,
             title: article.title,
             cover: article.cover,
             coverWEBP: article.coverWEBP,
@@ -127,18 +130,18 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
     })
 }
 
-export async function getPublicArticlesIds(): Promise<number[]> {
+export async function getPublicArticlesIds(): Promise<string[]> {
     const conn = await getConn();
-    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT id FROM article WHERE status = "published" ORDER BY published DESC;');
+    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT slug FROM article WHERE status = "published" ORDER BY published DESC;');
     await conn.end();
-    return articleIds.map(({id}) => id);
+    return articleIds.map(({slug}) => slug);
 }
 
-export async function getPublicArticles(articleIds: number[]): Promise<Article[]> {
+export async function getPublicArticles(slugs: string[]): Promise<Article[]> {
     const conn = await getConn();
-    const cond = Array(articleIds.length).fill('?');
+    const cond = Array(slugs.length).fill('?');
 
-    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover as cover, a.cover_webp as coverWEBP, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.published) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar as avatar, u.avatar_webp as avatarWEBP, u.avatar_jpeg_2000 as avatarJP2, u.custom_title FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published' AND a.id IN (${cond.join(',')})`, articleIds);
+    const [articles] = await conn.execute<ArticleRow[]>(`SELECT a.id as articleId, a.title, a.body, a.cover as cover, a.cover_webp as coverWEBP, a.cover_jpeg_2000 as coverJP2, a.status, UNIX_TIMESTAMP(a.published) as created, u.id as userId, u.twitch_id, u.display_name, u.avatar as avatar, u.avatar_webp as avatarWEBP, u.avatar_jpeg_2000 as avatarJP2, u.custom_title, a.slug as slug FROM article a INNER JOIN user u ON u.id = a.author WHERE a.status = 'published' AND a.slug IN (${cond.join(',')})`, slugs);
     const [tags] = await conn.execute<TagResponse[]>(`SELECT at.article_id as article, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM article_tags at INNER JOIN tag t ON t.id = at.tag_id`);
     await conn.end();
     return mapRows(articles, tags);
