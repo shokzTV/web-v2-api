@@ -95,6 +95,7 @@ export async function getTagRelations(tagId: number): Promise<Params> {
             title: article.title,
             body: article.body,
             cover: article.cover,
+            slug: article.slug,
             coverWEBP: article.coverWEBP,
             coverJP2: article.coverJP2,
             author: article.author,

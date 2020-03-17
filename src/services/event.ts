@@ -326,6 +326,7 @@ export async function getEventRelations(eventId: number): Promise<RelationRespon
         videos,
         articles: articles.map((article) => ({
             id: article.id,
+            slug: article.slug,
             title: article.title,
             cover: article.cover,
             coverWEBP: article.coverWEBP,
