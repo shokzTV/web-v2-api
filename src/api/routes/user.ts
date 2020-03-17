@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { loadUsers, updateUserRole } from '../../services/user';
+import { loadUsers, updateUserRole, updateUser } from '../../services/user';
 import { checkUserRole } from '../../middlewares/access';
 const route = Router();
 
@@ -13,6 +13,11 @@ export default (app: Router) => {
 
   route.patch('/role/:userId', checkUserRole('ADMIN_ACCESS'), async (req: Request, res: Response) => {
     await updateUserRole(+req.params.userId, +req.body.roleId);
+    return res.send().status(204);
+  });
+
+  route.patch('/:userId', checkUserRole('ADMIN_ACCESS'), async (req: Request, res: Response) => {
+    await updateUser(+req.params.userId, req.body);
     return res.send().status(204);
   });
 };
