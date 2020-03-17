@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { checkUserRole } from '../../middlewares/access';
 import { UploadedFile } from 'express-fileupload';
 import { User } from '../../entities/User';
-import { createDraft, publishArticle, unpublishArticle, getArticles, patchArticle, getPublicArticles, getPublicArticlesIds, getFeaturedArticles, deleteArticle } from '../../services/article';
+import { createDraft, publishArticle, unpublishArticle, getArticles, patchArticle, getPublicArticles, getPublicArticlesIds, getFeaturedArticles, deleteArticle, getPublicArticleSlugs } from '../../services/article';
 
 const route = Router();
 
@@ -21,14 +21,14 @@ export default (app: Router) => {
         return res.json(articles).status(200);
     });
 
-    route.get('/public/articleIds', async (req: Request, res: Response) => {
-        const articles = await getPublicArticlesIds();
-        return res.json(articles).status(200);
+    route.get('/slugs', async (req: Request, res: Response) => {
+        const slugs = await getPublicArticleSlugs();
+        return res.json(slugs).status(200);
     });
 
-    route.get('/public/articles', async (req: Request, res: Response) => {
-        const ids = req.query.ids.map((id: string) => +id);
-        const articles = await getPublicArticles(ids);
+    route.get('/bySlug', async (req: Request, res: Response) => {
+        const slugs = req.query.slugs;
+        const articles = await getPublicArticles(slugs);
         return res.json(articles).status(200);
     });
 

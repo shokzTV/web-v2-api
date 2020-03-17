@@ -130,7 +130,7 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
     })
 }
 
-export async function getPublicArticlesIds(): Promise<string[]> {
+export async function getPublicArticleSlugs(): Promise<string[]> {
     const conn = await getConn();
     const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT slug FROM article WHERE status = "published" ORDER BY published DESC;');
     await conn.end();
