@@ -44,15 +44,16 @@ export async function updateStreamerStatus(twitchId: string, online: Boolean, ti
     const conn = await getConn();
     let orig = '', webp = '', jp2 = '';
     const [rows] = await conn.execute<Streamer[]>('SELECT preview, preview_webp as previewWEBP, preview_jpeg_2000 as previewJP2 FROM streamer WHERE twitch_id = ?;', [twitchId]);
-    const streamer = rows[0];
-    streamer.preview.length > 0 && removeFile(streamer.preview);
-    streamer.previewWEBP.length > 0 && removeFile(streamer.previewWEBP);
-    streamer.previewJP2.length > 0 && removeFile(streamer.previewJP2);
     if(online) {
         [webp, jp2, orig] = await streamFile('streamerPreview', previewUrl, twitchId + '');
     }
     await conn.execute('UPDATE streamer SET online=?,title=?,viewer=?,preview=?,preview_webp=?,preview_jpeg_2000=? WHERE twitch_id = ?', [online, title, viewer, orig, webp, jp2, twitchId]);
     await conn.end();
+    
+    const streamer = rows[0];
+    streamer.preview.length > 0 && removeFile(streamer.preview);
+    streamer.previewWEBP.length > 0 && removeFile(streamer.previewWEBP);
+    streamer.previewJP2.length > 0 && removeFile(streamer.previewJP2);
 }
 
 export async function removeStreamer(id: number): Promise<void> {
