@@ -74,9 +74,7 @@ export async function saveFormFile(type: FileTypes, identifier: string, file: Up
 
 
     await new Promise((resolve) => {
-        imagemagick.convert([__dirname + `/../..${webPPath}`, '-quality', '0', __dirname + `/../..${jp2Path}`], () => {
-            resolve();
-        });
+        imagemagick.convert([__dirname + `/../..${jpegPath}`, '-quality', '0', __dirname + `/../..${jp2Path}`], () => resolve());
     });
 
     return [webPPath, jp2Path, jpegPath];
