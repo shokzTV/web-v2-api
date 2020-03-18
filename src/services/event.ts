@@ -193,12 +193,12 @@ export async function upadteEvent(
 
     const oldEvent = oldEventRows && (await getEvents([oldEventRows[0].slug]))[0];
     if(banner) {
-        const bannerPath = await saveFormFile('banner', name || oldEvent.name, banner, {height: 200});
-        await conn.execute('UPDATE event SET banner = ? WHERE id = ?', [bannerPath, eventId]);
+        const [webPPath, jp2Path, jpegPath] = await saveFormFile('banner', name || oldEvent.name, banner, {height: 200,width:1920});
+        await conn.execute('UPDATE event SET banner_webp = ?, banner_jpeg_2000 = ?, banner = ? WHERE id = ?', [webPPath, jp2Path, jpegPath, eventId]);
     }
     if(organizerLogo) {
-        const organizerLogoPath = await saveFormFile('organizer/eventlogo', name || oldEvent.name, organizerLogo, {height: 175});
-        await conn.execute('UPDATE event SET organizer_logo = ? WHERE id = ?', [organizerLogoPath, eventId]);
+        const [webPPath, jp2Path, jpegPath] = await saveFormFile('organizer/eventlogo', name || oldEvent.name, organizerLogo, {height: 175});
+        await conn.execute('UPDATE event SET organizer_logo_webp = ?, organizer_jpeag_2000 = ?, organizer_logo = ? WHERE id = ?', [webPPath, jp2Path, jpegPath, eventId]);
     }
     if(name) {
         await conn.execute('UPDATE event SET name = ? WHERE id = ?', [name, eventId]);
