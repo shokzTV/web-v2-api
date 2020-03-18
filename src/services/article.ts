@@ -26,11 +26,11 @@ interface Article {
     coverJP2: string;
     status: Status;
     author: {
-        id: number,
-        twitch: number,
-        avatar: string;
+        id?: number,
+        twitch?: number,
+        avatar?: string;
         name: string;
-        title: string;
+        title?: string;
     };
     created: number;
 }
@@ -118,6 +118,9 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
                 cover: article.cover,
                 coverWEBP: article.coverWEBP,
                 coverJP2: article.coverJP2,
+                author: {
+                    name: article.author.name,
+                }
             }
         }
 
@@ -129,6 +132,9 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
             cover: article.cover,
             coverWEBP: article.coverWEBP,
             coverJP2: article.coverJP2,
+            author: {
+                name: article.author.name,
+            }
         }
     })
 }
