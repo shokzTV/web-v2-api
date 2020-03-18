@@ -3,6 +3,7 @@ import { RowDataPacket, OkPacket } from "mysql2";
 import { getConn } from "../db";
 import { getUserRoleRights } from "./role";
 import { streamFile } from "./File";
+import { triggerDeploy } from "./zeit-co";
 
 type UserResponse = User & RowDataPacket & OkPacket;
 
@@ -94,5 +95,5 @@ export async function updateUser(userId: number, data: Partial<User>): Promise<v
         await conn.query('UPDATE user SET profile_url=? WHERE id=?;', [data.profileUrl, userId]);
     }
     await conn.end();
-
+    await triggerDeploy();
 }
