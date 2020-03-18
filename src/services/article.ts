@@ -112,6 +112,7 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
             return  {
                 id: article.id,
                 slug: article.slug,
+                created: article.created,
                 title: article.title,
                 body: article.body,
                 cover: article.cover,
@@ -123,6 +124,7 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
         return {
             id: article.id,
             slug: article.slug,
+            created: article.created,
             title: article.title,
             cover: article.cover,
             coverWEBP: article.coverWEBP,
