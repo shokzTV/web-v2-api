@@ -118,7 +118,7 @@ export async function getEvents(slugs: string[]): Promise<DecoratedEvent[]> {
 
     const ids = events.map(({id}) => id);
     const idCond = Array(ids.length).fill('?');
-    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${idCond.join(',')})`, ids);
+    const [eventTags] = await conn.execute<TagResponse[]>(`SELECT et.event_id as event, t.id, t.slug, t.name, t.image as image, t.image_webp as imageWEBP, t.image_jpeg_2000 as imageJP2 FROM event_tags et INNER JOIN tag t ON t.id = et.tag_id WHERE et.event_id IN (${idCond.join(',')})`, ids);
     const [eventLinks] = await conn.execute<EventLinkRow[]>(`SELECT id, event_id as event, link_type as linkType, name, link FROM event_links WHERE event_id IN (${idCond.join(',')})`, ids);
     const [organizers] = await conn.execute<OrganizerRow[]>('SELECT * from organizer');
     await conn.end();
