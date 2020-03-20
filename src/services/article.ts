@@ -108,7 +108,7 @@ export async function getFeaturedArticles(): Promise<Partial<Article>[]> {
     const articles = await getPublicArticles(articleIds.map(({slug}) => slug));
 
     return articles.map((article, index) => {
-        if(index === 3) {
+        if(index === 0) {
             return  {
                 id: article.id,
                 slug: article.slug,
