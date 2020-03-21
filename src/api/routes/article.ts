@@ -32,7 +32,7 @@ export default (app: Router) => {
         return res.json(articles).status(200);
     });
 
-    route.get('/list', checkUserRole('ADMIN_ACCESS'), async (req: Request, res: Response) => {
+    route.get('/list', checkUserRole('ARTICLE_CREATE'), async (req: Request, res: Response) => {
         const articles = await getArticles([]);
         return res.json(articles).status(200);
     });
