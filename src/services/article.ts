@@ -235,7 +235,7 @@ export async function publishArticle(articleId: number): Promise<void> {
     const [slugRow] = await conn.execute<RowDataPacket[]>('SELECT slug FROM article WHERE id = ?;', [articleId]);
     await conn.end();
     await triggerDeploy();
-    if(slugRow.length > 0) {
+    if(slugRow.length > 0 && config.discordWebhook.length > 0) {
         setTimeout(() => {
             hook.info('shokz.tv', 'https://shokz.tv/artikel/' + slugRow[0].slug);
         }, 90000)
