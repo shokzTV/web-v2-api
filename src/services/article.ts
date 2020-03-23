@@ -4,6 +4,8 @@ import { OkPacket, RowDataPacket } from 'mysql2';
 import {requireTags, Tag} from './tag';
 import { saveFormFile, removeFile } from './File';
 import { triggerDeploy } from './zeit-co';
+import { Webhook } from 'webhook-discord';
+import config from '../config';
 
 enum Status {
     draft = 'draft',
@@ -226,11 +228,18 @@ export async function deleteArticle(articleId: number): Promise<void> {
 
 }
 
+const hook = new Webhook(config.discordWebhook);
 export async function publishArticle(articleId: number): Promise<void> {
     const conn = await getConn();
     await conn.execute('UPDATE article SET status="published", published=NOW() WHERE id = ?;', [articleId]);
+    const [slugRow] = await conn.execute<RowDataPacket[]>('SELECT slug FROM article WHERE id = ?;', [articleId]);
     await conn.end();
     await triggerDeploy();
+    if(slugRow.length > 0) {
+        setTimeout(() => {
+            hook.info('shokz.tv', 'https://shokz.tv/artikel/' + slugRow[0].slug);
+        }, 90000)
+    }
 }
 
 export async function unpublishArticle(articleId: number): Promise<void> {
