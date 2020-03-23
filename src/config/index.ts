@@ -9,6 +9,7 @@ if (!envFound) {
 }
 
 export default {
+  discordWebhook: process.env.DISCORD_WEBHOOK || '',
   env: process.env.NODE_ENV || 'production',
   port: process.env.PORT || 80,
   secret: process.env.secret || 'someawesomesecret',
