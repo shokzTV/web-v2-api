@@ -238,7 +238,7 @@ export async function publishArticle(articleId: number): Promise<void> {
     if(slugRow.length > 0 && config.discordWebhook.length > 0) {
         setTimeout(() => {
             hook.info('shokz.tv', 'https://shokz.tv/artikel/' + slugRow[0].slug);
-        }, 90000)
+        }, 300000)
     }
 }
 
