@@ -1,4 +1,4 @@
-import { getPublicArticleSlugs } from "./article";
+import { getSlugsAndPublishDate } from "./article";
 import { getEventSlugs } from "./event";
 import { getTagSlugs } from "./tag";
 
@@ -32,11 +32,13 @@ export async function createSitemap() {
         xml += '</url>';
     }  
 
-    const articleSlugs = await getPublicArticleSlugs();
-    for(let slug of articleSlugs) {
+    const articleSlugs = await getSlugsAndPublishDate();
+    for(let {slug, published} of articleSlugs) {
+        const publishDate = new Date(published * 1000);
+        const publishStr = publishDate.getFullYear() + '-' + String(publishDate.getMonth() + 1).padStart(2, '0') + '-' + String(publishDate.getDate()).padStart(2, '0');
         xml += '<url>';
         xml += `<loc>${baseUrl + 'artikel/' + slug}</loc>`;
-        xml += `<lastmod>${lastModified}</lastmod>`;
+        xml += `<lastmod>${publishStr}</lastmod>`;
         xml += '</url>';
     }  
 
