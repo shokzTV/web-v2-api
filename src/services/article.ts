@@ -152,7 +152,7 @@ export async function getPublicArticleSlugs(): Promise<string[]> {
 
 export async function getSlugsAndPublishDate(): Promise<Array<{slug: string; published: number}>> {
     const conn = await getConn();
-    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT slug, UNIX_TIMESTAMP(a.published) as published FROM article WHERE status = "published" ORDER BY published DESC;');
+    const [articleIds] = await conn.execute<IdsRowPacket[]>('SELECT slug, UNIX_TIMESTAMP(published) as published FROM article WHERE status = "published" ORDER BY published DESC;');
     await conn.end();
     return articleIds.map(({slug, published}) => ({slug, published}));
 }
