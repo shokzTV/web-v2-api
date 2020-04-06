@@ -13,7 +13,7 @@ const staticPages = [
     'kategorien'
 ]
 
-const baseUrl = 'https://dota.shokz.tv/';
+const baseUrl = 'https://dota2.shokz.tv/';
 export async function createSitemap() {
     let xml = ''
     xml += '<?xml version="1.0" encoding="UTF-8"?>'
