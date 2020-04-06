@@ -244,7 +244,7 @@ export async function publishArticle(articleId: number): Promise<void> {
     await triggerDeploy();
     if(slugRow.length > 0 && config.discordWebhook.length > 0) {
         setTimeout(() => {
-            const msg = new MessageBuilder().setName("shokz.tv").setText('https://shokz.tv/artikel/' + slugRow[0].slug);
+            const msg = new MessageBuilder().setName("shokz.tv").setText('https://dota.shokz.tv/artikel/' + slugRow[0].slug);
             //@ts-ignore
             hook.send(msg);
         }, 300000)
