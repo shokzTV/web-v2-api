@@ -95,7 +95,7 @@ export default (app: Router) => {
         } = req.body;
         const tags = getArrayFromBody(req.body.tags);
         const links = getArrayFromBody(req.body.links);
-        const {banner = null, organizationLogo = null} = req.files || {};
+        const {banner = null, organizerLogo = null} = req.files || {};
         await upadteEvent(
             +req.params.eventId,
             name,
@@ -110,7 +110,7 @@ export default (app: Router) => {
             descriptionType,
             disclaimer,
             banner as UploadedFile | undefined,
-            organizationLogo as UploadedFile | undefined,
+            organizerLogo as UploadedFile | undefined,
             tags,
             links,
             slug,
