@@ -198,7 +198,7 @@ export async function upadteEvent(
     }
     if(organizerLogo) {
         const [webPPath, jp2Path, jpegPath] = await saveFormFile('organizer/eventlogo', name || oldEvent.name, organizerLogo, {height: 175});
-        await conn.execute('UPDATE event SET organizer_logo_webp = ?, organizer_jpeg_2000 = ?, organizer_logo = ? WHERE id = ?', [webPPath, jp2Path, jpegPath, eventId]);
+        await conn.execute('UPDATE event SET organizer_logo_webp = ?, organizer_logo_jpeg_2000 = ?, organizer_logo = ? WHERE id = ?', [webPPath, jp2Path, jpegPath, eventId]);
     }
     if(name) {
         await conn.execute('UPDATE event SET name = ? WHERE id = ?', [name, eventId]);
