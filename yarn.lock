@@ -94,7 +94,8 @@
 
 "@types/mysql2@types/mysql2":
   version "1.0.0"
-  resolved "https://codeload.github.com/types/mysql2/tar.gz/583484cfbc124214b06a65d0ac87251212b3c5d2"
+  uid d4ef3b2292f328049f7e4c545f6adab7d6a350a9
+  resolved "https://codeload.github.com/types/mysql2/tar.gz/d4ef3b2292f328049f7e4c545f6adab7d6a350a9"
   dependencies:
     "@types/mysql" types/mysql
 
