@@ -1,0 +1,79 @@
+name: Automatic deploy
+env:
+  APP_LOCATION: shokz.tv/web-v2/api
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+    - name: Install Node.js
+      uses: actions/setup-node@v1
+    - name: Install dependencies
+      run: yarn install
+    - name: Run build task
+      run: yarn run build
+    - name: Upload build artifacts
+      uses: easingthemes/ssh-deploy@v2.1.5
+      env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "lib/"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ env.APP_LOCATION }}/lib
+    - name: Copy package.json
+      uses: garygrossgarten/github-action-scp@release
+      with:
+        local: package.json
+        remote: ${{ env.APP_LOCATION }}/package.json
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        privateKey: ${{ secrets.SERVER_SSH_KEY }}
+    - name: Copy yarn.lock
+      uses: garygrossgarten/github-action-scp@release
+      with:
+        local: yarn.lock
+        remote: ${{ env.APP_LOCATION }}/yarn.lock
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        privateKey: ${{ secrets.SERVER_SSH_KEY }}
+    - name: Sync scripts
+      uses: easingthemes/ssh-deploy@v2.1.5
+      env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "scripts/"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ env.APP_LOCATION }}/scripts
+    - name: Sync migrations
+      uses: easingthemes/ssh-deploy@v2.1.5
+      env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-rltgoDzvO --delete"
+          SOURCE: "migrations/"
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ env.APP_LOCATION }}/migrations
+    - name: Install dependencies
+      uses: garygrossgarten/github-action-ssh@release
+      with:
+        command: cd ${{ env.APP_LOCATION }} && yarn install && yarn migrate
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        privateKey: ${{ secrets.SERVER_SSH_KEY }}
+    - name: Restart API
+      uses: garygrossgarten/github-action-ssh@release
+      with:
+        command: sudo pm2 restart ${{ env.APP_LOCATION }}
+        host: ${{ secrets.REMOTE_HOST }}
+        username: ${{ secrets.REMOTE_USER }}
+        privateKey: ${{ secrets.SERVER_SSH_KEY }}
