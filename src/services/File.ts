@@ -1,4 +1,4 @@
-import uuid from 'uuid/v5';
+import {v5} from 'uuid';
 import fs from 'fs';
 import fetch from 'node-fetch';
 import sharp from 'sharp';
@@ -12,7 +12,7 @@ function buildPathWithType(type: FileTypes, identifier: string, name: string): s
 }
 function buildPath(type: FileTypes, identifier: string): string {
     const bonusHash = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10); ;
-    const imgHash = uuid(identifier + bonusHash, uuid.URL);
+    const imgHash = v5(identifier + bonusHash, v5.URL);
     return `/static/${type}/${imgHash}`;
 }
 
@@ -25,7 +25,7 @@ export async function streamFile(type: FileTypes = 'videoThumbs', url: string, i
     const path = __dirname + `/../..${relativePath}`;
     const res = await fetch(url);
     const fileStream = fs.createWriteStream(path);
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
         res.body.pipe(fileStream);
         res.body.on('error', (err: string) => reject(err));
         fileStream.on('finish', () => resolve());
@@ -37,7 +37,7 @@ export async function streamFile(type: FileTypes = 'videoThumbs', url: string, i
         await image.webp().toFile(__dirname + '/../..' + fileHash + '.webp');
     }
     if(!relativePath.endsWith('.jp2')) {
-        await new Promise((resolve) => {
+        await new Promise<void>((resolve) => {
             imagemagick.convert([path, '-quality', '0', __dirname + '/../..' + fileHash + '.jp2'], () => resolve());
         });
     }
@@ -73,7 +73,7 @@ export async function saveFormFile(type: FileTypes, identifier: string, file: Up
     }
 
 
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
         imagemagick.convert([__dirname + `/../..${jpegPath}`, '-quality', '0', __dirname + `/../..${jp2Path}`], () => resolve());
     });
 

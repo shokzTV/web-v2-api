@@ -6,6 +6,7 @@ import {streamFile} from './File';
 import { triggerDeploy } from "./zeit-co";
 
 function buildYoutubeUrl(url: string): string {
+    //@ts-ignore
     const [,videoId] = url.match(/^https:\/\/www\.youtube\.com\/watch\?v=(.*)$/);
     return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 }

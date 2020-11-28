@@ -27,7 +27,7 @@ export default (app: Router) => {
     });
 
     route.get('/bySlug', async (req: Request, res: Response) => {
-        const slugs = req.query.slugs;
+        const slugs = req.query.slugs as string[];
         const articles = await getPublicArticles(slugs);
         return res.json(articles).status(200);
     });

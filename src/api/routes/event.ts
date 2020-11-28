@@ -30,7 +30,7 @@ export default (app: Router) => {
     });
 
     route.get('/bySlug', async (req: Request, res: Response) => {
-        const events = await getEvents(req.query.slugs);
+        const events = await getEvents(req.query.slugs as string[]);
         return res.json(events).status(200);
     });
     

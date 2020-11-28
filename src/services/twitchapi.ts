@@ -63,6 +63,7 @@ interface Video {
 
 //example url: https://www.twitch.tv/videos/542602733
 export async function fetchVideoByUrl(url: string): Promise<Video> {
+    //@ts-ignore
     const [, videoId] = url.match(/^https:\/\/www\.twitch\.tv\/videos\/(\d+)$/);
     return fetchVideo(videoId);
 }
