@@ -1,30 +1,19 @@
-import config from './config';
-import express from 'express';
-import fs from 'fs';
-import https from 'https';
-import passport from 'passport';
-import http from 'http';
-import {green} from 'chalk';
-import './tasks';
+import "./tasks";
 
-let key: string;
-let cert: string;
-let ca: string;
-
-if(config.server.secure) {
-    key = fs.readFileSync(config.server.certs.basePath + config.server.certs.key, 'utf8');
-    cert = fs.readFileSync(config.server.certs.basePath + config.server.certs.cert, 'utf8');
-    ca = fs.readFileSync(config.server.certs.basePath + config.server.certs.chain, 'utf8');
-}
+import config from "./config";
+import express from "express";
+import { green } from "chalk";
+import http from "http";
+import passport from "passport";
 
 async function startServer() {
-    const app = express();
-    await require('./loaders').default({ app, passport });
+  const app = express();
+  await require("./loaders").default({ app, passport });
 
-    const server  = config.server.secure ? https.createServer({key, cert, ca}, app) : http.createServer(app);
-    server.listen(config.port, () => {
-        console.log(green(`API started on: ${config.port}`));
-    });
+  const server = http.createServer(app);
+  server.listen(config.port, () => {
+    console.log(green(`API started on: ${config.port}`));
+  });
 }
 
 startServer();
