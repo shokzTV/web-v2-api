@@ -3,9 +3,8 @@ import { getStreamerIds, updateStreamerStatus } from "../services/streamer";
 
 import { green } from "chalk";
 import grey from "chalk";
-import interval from "interval-promise";
 
-console.log(green("📝 Registered streamer task"));
+//console.log(green("📝 Registered streamer task"));
 
 async function fetchWatchingStreamer(): Promise<string[]> {
   return await getStreamerIds();
@@ -50,6 +49,6 @@ async function startUpdate(): Promise<void> {
   }
 }
 
-interval(async () => startUpdate(), 30000);
+//interval(async () => startUpdate(), 30000);
 
-startUpdate();
+//startUpdate();
