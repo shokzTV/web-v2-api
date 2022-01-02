@@ -71,7 +71,7 @@ jobs:
         host: ${{ secrets.REMOTE_HOST }}
         username: ${{ secrets.REMOTE_USER }}
         privateKey: ${{ secrets.SERVER_SSH_KEY }}
-    - name: Restart API
+    - name: Restart
       uses: garygrossgarten/github-action-ssh@release
       with:
         command: sudo pm2 restart ${{ env.APP_LOCATION }}
