@@ -1,6 +1,6 @@
 name: Automatic deploy
 env:
-  APP_LOCATION: shokztv/api
+  APP_LOCATION: customers/shokztv/api
 
 on:
   push:
